@@ -7,6 +7,6 @@ This is a ReasonReact/actix_web/cap'nproto rewrite of my prior [attendance](http
 So, of course, I hopped ship to something else new and niche.  Let's see how this goes.
 
 ## Usage
- The build is contralled via `npm` scripts defined in `package.json`.  I prefer `yarn`, use what makes you happy.  `start` runs the Reason filewatcher, anr `webpack` runs webpack.  Use `build` and `webpack:production` for production.
+ The build is contralled via `npm` scripts defined in `package.json`.  I prefer `yarn`, use what makes you happy.  `start` runs the Reason filewatcher, and `webpack` runs webpack.  Use `build` and `webpack:production` for production.
  
  I haven't built the server yet, so just open `webapp/src/index.html`.

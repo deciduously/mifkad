@@ -1,12 +1,10 @@
 /* State declaration */
 type state = {
-  color: bool,
-  show: bool,
+  present: bool,
 };
 
 /* Action declaration */
 type action =
-  | Click
   | Toggle;
 
 /* Component template declaration.
@@ -15,30 +13,25 @@ let component = ReasonReact.reducerComponent("Kid");
 
 /* greeting and children are props. `children` isn't used, therefore ignored.
    We ignore it by prepending it with an underscore */
-let make = (~greeting, _children) => {
+let make = (~name, _children) => {
   /* spread the other default fields of component here and override a few */
   ...component,
 
-  initialState: () => {color: false, show: true},
+  initialState: () => {present: true},
 
   /* State transitions */
   reducer: (action, state) =>
     switch (action) {
-    | Click => ReasonReact.Update({...state, color: ! state.color})
-    | Toggle => ReasonReact.Update({...state, show: ! state.show})
+    | Toggle => ReasonReact.Update({...state, present: ! state.present})
     },
 
   render: self => {
-  let message = "I am but a child";
-  let style = self.state.color ? "red" : "blue";
+  let style = self.state.present ? "green" : "red";
+  let status = self.state.present ? "In" : "Out";
     <div>
-      <button style=ReactDOMRe.Style.make(~color=style, ()) onClick=(_event => self.send(Click))>
-        (ReasonReact.string(message))
+      <button style=ReactDOMRe.Style.make(~color=style, ()) onClick=(_event => self.send(Toggle))>
+        {ReasonReact.string(name ++ " - " ++ status)}
       </button>
-      <button onClick=(_event => self.send(Toggle))>
-        (ReasonReact.string("Toggle greeting"))
-      </button>
-      (self.state.show ? ReasonReact.string(greeting) : ReasonReact.null)
     </div>;
   },
 };

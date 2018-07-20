@@ -6,7 +6,7 @@ let make = (~kids, _children) => {
   render: _self => {
   <ul>
     <li>{ReasonReact.string("Capacity")}</li>
-    <li>{ReasonReact.string("Placeholder Kid")}</li>
+    <li><Kid name="Placeholder Kid" /></li>
 </ul>
 }
 }
