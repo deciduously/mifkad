@@ -3,8 +3,9 @@ let component = ReasonReact.statelessComponent("Roster");
 
 let make = (~roster, _children) => {
   ...component,
-  render: (self) => {
+  render: _self => {
   <div id=roster>
+    <ul><Room room="Placeholder Class" /> </ul>
     {ReasonReact.string(roster)}
     </div>
   }
