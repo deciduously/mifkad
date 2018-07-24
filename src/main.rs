@@ -13,7 +13,7 @@ mod errors {
 }
 
 use actix_web::{
-    fs::NamedFile, http, middleware::{self, cors::Cors}, server::HttpServer, App, Path,
+    fs::NamedFile, http, middleware::{self, cors::Cors}, server::HttpServer, App, HttpRequest,
 };
 use errors::*;
 use std::{
@@ -46,29 +46,24 @@ fn run() -> Result<()> {
 
     // actix setup
     let sys = actix::System::new("mifkad");
-    let addr = "127.0.0.1:3000";
+    let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
         App::new()
             .configure({
                 |app| {
                     Cors::for_app(app)
-                        .allowed_methods(vec!["GET"])
+                        .allowed_methods(vec!["GET", "POST"])
                         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
-                        .resource("/webapp/build/{tail:.*}", |r| {
-                            r.method(http::Method::GET).with(static_file)
-                        })
-                        .resource("/static/{tail:.*}", |r| {
-                            r.method(http::Method::GET).with(static_file)
-                        })
+                        .resource("/", |r| r.method(http::Method::GET).with(index))
                         .register()
                 }
             })
             .handler(
                 "/",
-                actix_web::fs::StaticFiles::new("./webapp/src").index_file("index.html"),
+                actix_web::fs::StaticFiles::new("./static").index_file("index.html"),
             )
             .middleware(middleware::Logger::default())
     }).bind(addr)
@@ -78,11 +73,9 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-// Any static file
-pub fn static_file(path: Path<String>) -> actix_web::Result<NamedFile> {
-    let mut pb = PathBuf::new();
-    pb.push(path.into_inner());
-    Ok(NamedFile::open(pb)?)
+fn index(_req: HttpRequest) -> actix_web::Result<NamedFile> {
+    let path: PathBuf = PathBuf::from("./webapp/src/index.html");
+    Ok(NamedFile::open(path)?)
 }
 
 fn main() {

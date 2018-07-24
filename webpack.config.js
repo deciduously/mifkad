@@ -1,5 +1,5 @@
 const path = require('path');
-const outputDir = path.join(__dirname, "webapp/build/");
+const outputDir = path.join(__dirname, "./static");
 
 const isProd = process.env.NODE_ENV === 'production';
 
