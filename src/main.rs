@@ -13,7 +13,8 @@ mod errors {
 }
 
 use actix_web::{
-    fs::NamedFile, http, middleware::{self, cors::Cors}, server::HttpServer, App, HttpRequest,
+    fs::{NamedFile, StaticFiles}, http, middleware::{self, cors::Cors}, server::HttpServer, App,
+    HttpRequest,
 };
 use errors::*;
 use std::{
@@ -61,10 +62,7 @@ fn run() -> Result<()> {
                         .register()
                 }
             })
-            .handler(
-                "/",
-                actix_web::fs::StaticFiles::new("./static").index_file("index.html"),
-            )
+            .handler("/static", StaticFiles::new("./static/"))
             .middleware(middleware::Logger::default())
     }).bind(addr)
         .chain_err(|| "Could not initialize server")?
