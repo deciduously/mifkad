@@ -4,9 +4,9 @@ let component = ReasonReact.statelessComponent("KidList");
 let make = (~kids, _children) => {
   ...component,
   render: _self => {
-  <ul>
-    <li>{ReasonReact.string("Capacity")}</li>
-    <li><Kid name="Placeholder Kid" /></li>
+  <ul className="kidlist">
+    <li className="capacity">{ReasonReact.string("Capacity")}</li>
+    <Kid name="Placeholder Kid" />
 </ul>
 }
 }

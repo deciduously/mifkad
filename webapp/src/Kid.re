@@ -27,10 +27,10 @@ let make = (~name, _children) => {
 
   render: self => {
   let button_class = self.state.present ? "In" : "Out";
-    <div>
+    <li className="kid">
       <button className=button_class onClick=(_event => self.send(Toggle))>
         {ReasonReact.string(name ++ " - " ++ button_class)}
       </button>
-    </div>;
+    </li>;
   },
 };
