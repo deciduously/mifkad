@@ -22,15 +22,14 @@ let make = (~name, _children) => {
   /* State transitions */
   reducer: (action, state) =>
     switch (action) {
-    | Toggle => ReasonReact.Update({...state, present: ! state.present})
+    | Toggle => ReasonReact.Update({present: ! state.present}) /* present is the whole state, no ...state needed */
     },
 
   render: self => {
-  let style = self.state.present ? "green" : "red";
-  let status = self.state.present ? "In" : "Out";
+  let button_class = self.state.present ? "In" : "Out";
     <div>
-      <button style=ReactDOMRe.Style.make(~color=style, ()) onClick=(_event => self.send(Toggle))>
-        {ReasonReact.string(name ++ " - " ++ status)}
+      <button className=button_class onClick=(_event => self.send(Toggle))>
+        {ReasonReact.string(name ++ " - " ++ button_class)}
       </button>
     </div>;
   },
