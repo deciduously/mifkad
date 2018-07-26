@@ -7,6 +7,7 @@ authors = ["deciduously <github@deciduously.com>"]
 
 actix = "0.5"
 actix-web = "0.6"
+calamine = "0.14"
 error-chain = "0.12"
 log = "0.4"
 pretty_env_logger = "0.2"

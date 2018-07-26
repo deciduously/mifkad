@@ -1,5 +1,6 @@
 extern crate actix;
 extern crate actix_web;
+extern crate calamine;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
@@ -8,6 +9,7 @@ extern crate log;
 extern crate pretty_assertions;
 extern crate pretty_env_logger;
 
+mod enrollment;
 mod errors {
     error_chain!{}
 }
