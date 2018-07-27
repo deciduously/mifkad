@@ -1,7 +1,7 @@
 extern crate actix;
 extern crate actix_web;
 extern crate calamine;
-extern crate capnp;
+//extern crate capnp;
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
@@ -14,14 +14,15 @@ extern crate pretty_env_logger;
 extern crate regex;
 
 mod data;
-mod enrollment;
+//mod enrollment;
 mod errors {
     error_chain!{}
 }
+mod schema;
 
-pub mod enrollment_capnp {
-    include!(concat!(env!("OUT_DIR"), "/enrollment_capnp.rs"));
-}
+//pub mod enrollment_capnp {
+//    include!(concat!(env!("OUT_DIR"), "/enrollment_capnp.rs"));
+//}
 
 use actix_web::{
     fs::{NamedFile, StaticFiles}, http, middleware::{self, cors::Cors}, server::HttpServer, App,

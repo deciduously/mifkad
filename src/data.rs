@@ -4,9 +4,10 @@
 use calamine::{open_workbook, Reader, Xlsx};
 use errors::*;
 use regex::Regex;
+use schema::*;
 
-// temporary
-fn print_significant_rows() -> Result<()> {
+// pull_rows will read in the Enrollment excel sheet and populate the School
+fn scrape_enrollment() -> Result<School> {
     lazy_static! {
         static ref KID_RE: Regex =
             Regex::new(r"((@|#|&) )?(?P<last>[A-Z]+), (?P<first>[A-Z]+)").unwrap();
@@ -26,14 +27,14 @@ fn print_significant_rows() -> Result<()> {
                 String(s) => {
                     // If its a kid, push it to the open class
                     // If it's anything else, ignore it.
-                    if KID_RE.is_match(&s) {
-                        debug!("MATCH KID: {}", &s);
-                        let caps = KID_RE.captures(&s).unwrap();
-                        idxs.push_str(&format!("{} {}\n", &caps["first"], &caps["last"]));
-                    } else if CLASS_RE.is_match(&s) {
+                    if CLASS_RE.is_match(&s) {
                         debug!("MATCH CLASS: {}", &s);
                         let caps = CLASS_RE.captures(&s).unwrap();
                         idxs.push_str(&format!("ROOM {}:\n", &caps[1]))
+                    } else if KID_RE.is_match(&s) {
+                        debug!("MATCH KID: {}", &s);
+                        let caps = KID_RE.captures(&s).unwrap();
+                        idxs.push_str(&format!("{} {}\n", &caps["first"], &caps["last"]));
                     }
                 }
                 _ => continue,
@@ -42,7 +43,9 @@ fn print_significant_rows() -> Result<()> {
         }
         println!("{}", idxs)
     }
-    Ok(())
+    Ok(School {
+        classrooms: Vec::new(),
+    })
 }
 
 // Kid(name, mon, tue, wed, thu, fri)
@@ -53,7 +56,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_open_excel() {
-        print_significant_rows().unwrap();
-        assert_eq!("write", "write")
+        scrape_enrollment().unwrap();
+        assert_eq!("write", "me")
     }
 }

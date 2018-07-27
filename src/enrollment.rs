@@ -3,6 +3,8 @@ use capnp::serialize_packed;
 use enrollment_capnp::{classroom, kid, school};
 use errors::*;
 
+// BEN - this might be a waste of effort.  Let's get 'em into Rust structs for now
+
 pub fn write_classroom() -> ::std::io::Result<()> {
     let mut message = ::capnp::message::Builder::new_default();
     {
@@ -54,6 +56,6 @@ mod tests {
     #[test]
     fn test_write_classroom() {
         write_classroom().unwrap();
-        assert_eq!("write", "me")
+        assert_eq!("write", "write")
     }
 }

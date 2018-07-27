@@ -2,23 +2,23 @@
 name = "mifkad"
 version = "0.1.0"
 authors = ["deciduously <github@deciduously.com>"]
-build = "build.rs"
+# build = "build.rs"
 
 [dependencies]
 
 actix = "0.5"
 actix-web = "0.6"
 calamine = "0.14"
-capnp = "0.8"
+# capnp = "0.8"
 error-chain = "0.12"
 lazy_static = "1"
 log = "0.4"
 pretty_env_logger = "0.2"
 regex = "1"
 
-[build-dependencies]
-
-capnpc = "0.8"
+# [build-dependencies]
+# 
+# capnpc = "0.8"
 
 [dev-dependencies]
 
