@@ -12,6 +12,7 @@ extern crate log;
 extern crate pretty_assertions;
 extern crate pretty_env_logger;
 extern crate regex;
+extern crate uuid;
 
 mod data;
 //mod enrollment;
