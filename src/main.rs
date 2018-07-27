@@ -14,6 +14,7 @@ extern crate pretty_env_logger;
 extern crate regex;
 
 mod data;
+mod enrollment;
 mod errors {
     error_chain!{}
 }
@@ -21,11 +22,6 @@ mod errors {
 pub mod enrollment_capnp {
     include!(concat!(env!("OUT_DIR"), "/enrollment_capnp.rs"));
 }
-
-pub mod enrollment {
-
-}
-
 
 use actix_web::{
     fs::{NamedFile, StaticFiles}, http, middleware::{self, cors::Cors}, server::HttpServer, App,
