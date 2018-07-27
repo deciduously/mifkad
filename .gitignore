@@ -11,3 +11,5 @@
 **/*.rs.bk
 
 /sample
+yarn-error.log
+**/.#*

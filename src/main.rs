@@ -1,23 +1,37 @@
 extern crate actix;
 extern crate actix_web;
 extern crate calamine;
+extern crate capnp;
 #[macro_use]
 extern crate error_chain;
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
 extern crate pretty_assertions;
 extern crate pretty_env_logger;
+extern crate regex;
 
-mod enrollment;
+mod data;
 mod errors {
     error_chain!{}
 }
+
+pub mod enrollment_capnp {
+    include!(concat!(env!("OUT_DIR"), "/enrollment_capnp.rs"));
+}
+
+pub mod enrollment {
+
+}
+
 
 use actix_web::{
     fs::{NamedFile, StaticFiles}, http, middleware::{self, cors::Cors}, server::HttpServer, App,
     HttpRequest,
 };
+
 use errors::*;
 use std::{
     env::{set_var, var}, path::PathBuf,
@@ -45,7 +59,7 @@ fn init_logging(level: u64) -> Result<()> {
 fn run() -> Result<()> {
     // Start env_logger - for now, change this number to change log level
     // I'm using it for all of main, just just actix-web
-    init_logging(1)?;
+    init_logging(2)?;
 
     // actix setup
     let sys = actix::System::new("mifkad");
