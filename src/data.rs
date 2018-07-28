@@ -26,9 +26,6 @@ fn scrape_enrollment() -> Result<School> {
 
     // Try to get "Sheet1" as `r` - it should always exist
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
-        // This is just for debugginging - shoudl be removed
-        let mut idxs = String::new();
-
         // Process each row
         for row in r.rows() {
             debug!("ROW:");
@@ -43,47 +40,41 @@ fn scrape_enrollment() -> Result<School> {
                     if CLASS_RE.is_match(&s) {
                         debug!("MATCH CLASS: {}", &s);
                         let caps = CLASS_RE.captures(&s).unwrap();
-                        idxs.push_str(&format!("ROOM {}:\n", &caps[1]));
                         // the capacity is found in Column B
-                        let mut capacity = 0;
+                        let mut capacity: u8;
                         match &row[1] {
                             String(s2) => {
                                 let capacity_caps = CAPACITY_RE.captures(&s2).unwrap();
-                                capacity = (&capacity_caps[1]).parse::<u8>().chain_err(|| "Unable to parse capoacity as u8")?;
+                                capacity = (&capacity_caps[1]).parse::<u8>().chain_err(|| "Unable to parse capacity as u8")?;
                             },
                             _ => bail!("Column B of Classroom declaration contained unexpected data")
                         }
                         
                         // create a new Classroom and push it to the school
-                        if capacity == 0 { bail!("Capacity not set before classroom insertion") };
                         let new_class = Classroom::new(caps[1].to_string(), capacity);
                         debug!("ADDED CLASS: {:?}", &new_class);
                         school.classrooms.push(new_class);
                     } else if KID_RE.is_match(&s) {
                         debug!("MATCH KID: {}", &s);
                         let caps = KID_RE.captures(&s).unwrap();
-                        idxs.push_str(&format!("{} {}\n", &caps["first"], &caps["last"]));
                         let mut name = ::std::string::String::from(&caps["first"]);
                         name.push_str(" ");
                         name.push_str(&caps["last"]);
 
-                        println!("NAME: {}", name);
                         let new_kid = Kid::new(name);
 
                         // push the kid to the latest open class
                         let mut classroom =
-                            school.classrooms.pop().expect("No open classroom to pop");
+                            school.classrooms.pop().expect("Kid found before classroom declaration - input file malformed");
                         classroom.push_kid(new_kid);
                         school.classrooms.push(classroom);
                     }
                 }
                 _ => continue,
             }
-            //println!("row={:?}, row[0]={:?}", row, row[0]);
         }
-        println!("{}", idxs)
     }
-    println!("SCHOOL: {:?}", school);
+    println!("SCHOOL: {:#?}", school);
     Ok(school)
 }
 
