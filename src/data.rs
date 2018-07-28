@@ -15,6 +15,7 @@ fn scrape_enrollment() -> Result<School> {
         static ref KID_RE: Regex =
             Regex::new(r"((@|#|&) )?(?P<last>[A-Z]+), (?P<first>[A-Z]+)").unwrap();
         static ref CLASS_RE: Regex = Regex::new(r"CLASSROOM: ([A-Z])").unwrap();
+        static ref CAPACITY_RE: Regex = Regex::new(r"CLASS MAXIMUM: (\d+)").unwrap();
     }
     // initialize return struct
     let mut school = School::new();
@@ -43,9 +44,19 @@ fn scrape_enrollment() -> Result<School> {
                         debug!("MATCH CLASS: {}", &s);
                         let caps = CLASS_RE.captures(&s).unwrap();
                         idxs.push_str(&format!("ROOM {}:\n", &caps[1]));
-
+                        // the capacity is found in Column B
+                        let mut capacity = 0;
+                        match &row[1] {
+                            String(s2) => {
+                                let capacity_caps = CAPACITY_RE.captures(&s2).unwrap();
+                                capacity = (&capacity_caps[1]).parse::<u8>().chain_err(|| "Unable to parse capoacity as u8")?;
+                            },
+                            _ => bail!("Column B of Classroom declaration contained unexpected data")
+                        }
+                        
                         // create a new Classroom and push it to the school
-                        let new_class = Classroom::new(caps[1].to_string(), 2); // TODO capacity -  I think its in a different column
+                        if capacity == 0 { bail!("Capacity not set before classroom insertion") };
+                        let new_class = Classroom::new(caps[1].to_string(), capacity);
                         debug!("ADDED CLASS: {:?}", &new_class);
                         school.classrooms.push(new_class);
                     } else if KID_RE.is_match(&s) {
