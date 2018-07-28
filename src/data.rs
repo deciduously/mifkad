@@ -5,6 +5,7 @@ use calamine::{open_workbook, Reader, Xlsx};
 use errors::*;
 use regex::Regex;
 use schema::*;
+use std::str::FromStr;
 
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
@@ -20,7 +21,8 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
     let mut school = School::new();
 
     // identify day
-    let weekday = Weekday::from_str(day);
+    let weekday = Weekday::from_str(day).chain_err(|| format!("Not a real day: {}", day))?;
+    info!("Loading {:?} from Enrollment export", weekday);
 
     // Use calamind to read in the input sheet
     // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
@@ -30,7 +32,6 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
         // Process each row
         for row in r.rows() {
-            debug!("ROW:");
             use calamine::DataType::*;
             // Column A is either a Class or a Kid
             let column_a = &row[0];
@@ -58,7 +59,10 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
 
                         // create a new Classroom and push it to the school
                         let new_class = Classroom::new(caps[1].to_string(), capacity);
-                        info!("ADDED CLASS: {:?}", &new_class);
+                        info!(
+                            "FOUND CLASS: {} (max {})",
+                            &new_class.letter, &new_class.capacity
+                        );
                         school.classrooms.push(new_class);
                     } else if KID_RE.is_match(&s) {
                         debug!("MATCH KID: {}", &s);
@@ -79,9 +83,13 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
                             Weekday::Wednesday => 8,
                             Weekday::Thursday => 9,
                             Weekday::Friday => 10,
-                        }
-                        new_kid.add_day(day, &format!("{}", &row[sched_idx]));
-
+                        };
+                        let sched = &row[sched_idx];
+                        new_kid.add_day(day, &format!("{}", sched));
+                        info!(
+                            "FOUND KID: {} - {} ({:?})",
+                            new_kid.name, sched, new_kid.schedule[0].expected
+                        );
                         // push the kid to the latest open class
                         let mut classroom = school.classrooms.pop().expect(
                             "Kid found before classroom declaration - input file malformed",
@@ -94,8 +102,7 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
             }
         }
     }
-    info!("ENROLLMENT LOADED");
-    school.filter_day(day);
+    info!("ENROLLMENT LOADED - {:?}", weekday);
     Ok(school)
 }
 

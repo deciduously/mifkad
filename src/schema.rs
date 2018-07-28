@@ -51,7 +51,7 @@ impl FromStr for Expected {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         lazy_static! {
-            static ref PARTIAL_HOUR_RE: Regex = Regex::new(r"\d+:(\d+)").unwrap();
+            static ref PARTIAL_HOUR_RE: Regex = Regex::new(r"(\d+):\d+").unwrap();
         }
         use self::Expected::*;
         // if empty string, that's all we need to know
@@ -110,16 +110,6 @@ impl School {
     pub fn new() -> Self {
         Self {
             classrooms: Vec::new(),
-        }
-    }
-
-    // filter day returns a version of itself with only the relevant day
-    // accepts any string that can turn into a Weekday or "all"
-    pub fn filter_day(&mut self, day: &str) {
-        if day == "all" {
-            return;
-        } else {
-            let weekday = Weekday::from_str(day).unwrap();
         }
     }
 }

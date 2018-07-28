@@ -80,7 +80,7 @@ fn run() -> Result<()> {
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
                         .resource("/", |r| r.method(http::Method::GET).with(index))
-                        // mon||monday, e.g., or all
+                        // mon||monday, e.g.
                         .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
                         .register()
                 }
