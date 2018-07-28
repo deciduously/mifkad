@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -36,10 +37,12 @@ impl Day {
     }
 }
 
+// TODO carry the actual schedule with this
+// Unimportant for now - we dont care beyond whether or not they go to extended
 #[derive(Debug, PartialEq)]
 pub enum Expected {
-    Core(String), // TODO specific "schedule" type?
-    Extended(String),
+    Core,
+    Extended,
     Unscheduled,
 }
 
@@ -47,19 +50,31 @@ impl FromStr for Expected {
     type Err = ::std::num::ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        lazy_static! {
+            static ref PARTIAL_HOUR_RE: Regex = Regex::new(r"\d+:(\d+)").unwrap();
+        }
         use self::Expected::*;
         // if empty string, that's all we need to know
-        if s == "" {return Ok(Unscheduled)};
+        if s == "" {
+            return Ok(Unscheduled);
+        };
 
-        let times: Vec<&str> = s.split('-').collect();
-        // I don't care about the begining time
-        // If this tool ever needs to care about Early Drop, you'll need to deal with 7:30 - otherwise all numbers are whole
-        //let _begin = times[0].parse::<u8>()?;
-        let end = times[1].parse::<u8>()?;
-        if end > 4 {
-            Ok(Extended(s.to_string()))
+        let times: Vec<&str> = s.split(" - ").collect();
+
+        // I don't care about the beginning time, just the end
+        // if it's a time like 2:30, take the hour and add one
+        let end_str = times[1];
+        let end = if PARTIAL_HOUR_RE.is_match(end_str) {
+            let part_caps = PARTIAL_HOUR_RE.captures(end_str).unwrap();
+            part_caps[1].parse::<u8>()? + 1
         } else {
-            Ok(Core(s.to_string()))
+            times[1].parse::<u8>()?
+        };
+
+        if end > 4 {
+            Ok(Extended)
+        } else {
+            Ok(Core)
         }
     }
 }
@@ -78,6 +93,11 @@ impl Kid {
             name,
             schedule: Vec::new(),
         }
+    }
+    pub fn add_day(&mut self, day_str: &str, sched_str: &str) {
+        // TODO check if day already exists - therese should be unique
+        // a HashMap is probably a better idea, luckily we can keep this fn
+        self.schedule.push(Day::new(day_str, sched_str));
     }
 }
 
@@ -114,43 +134,52 @@ impl FromStr for Weekday {
             "wed" | "wednesday" => Wednesday,
             "thu" | "thursday" => Thursday,
             "fri" | "friday" => Friday,
-            _ => { return Err(::std::io::Error::new(::std::io::ErrorKind::Other, "Unknown weekday")); },
+            _ => {
+                return Err(::std::io::Error::new(
+                    ::std::io::ErrorKind::Other,
+                    "Unknown weekday",
+                ));
+            }
         };
-    Ok(ret)
-    }    
+        Ok(ret)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_expected_core() {
-        assert_eq!(Expected::from_str("8-4").unwrap(), Expected::Core("8-4".to_string()))
+        assert_eq!(Expected::from_str("8 - 4").unwrap(), Expected::Core)
     }
     #[test]
     fn test_expected_extended() {
-        assert_eq!(Expected::from_str("8-6").unwrap(), Expected::Extended("8-6".to_string()))
+        assert_eq!(Expected::from_str("8 - 6").unwrap(), Expected::Extended)
     }
     #[test]
     fn test_expected_within_core() {
-        assert_eq!(Expected::from_str("9-1").unwrap(), Expected::Core("9-1".to_string()))
+        assert_eq!(Expected::from_str("9 - 1").unwrap(), Expected::Core)
     }
     #[test]
     fn test_expected_core_late_start() {
-        assert_eq!(Expected::from_str("10-4").unwrap(), Expected::Core("10-4".to_string()))
+        assert_eq!(Expected::from_str("10 - 4").unwrap(), Expected::Core)
+    }
+    #[test]
+    fn test_expected_core_partial_endtime() {
+        assert_eq!(Expected::from_str("8 - 2:30").unwrap(), Expected::Core)
     }
     #[test]
     fn test_expected_core_early_start() {
-        assert_eq!(Expected::from_str("7:30-4").unwrap(), Expected::Core("7:30-4".to_string()))
+        assert_eq!(Expected::from_str("7:30 - 4").unwrap(), Expected::Core)
     }
     #[test]
     fn test_expected_extended_early_start() {
-        assert_eq!(Expected::from_str("7:30-6").unwrap(), Expected::Extended("7:30-6".to_string()))
+        assert_eq!(Expected::from_str("7:30 - 6").unwrap(), Expected::Extended)
     }
     #[test]
     fn test_expected_extended_late_start() {
-        assert_eq!(Expected::from_str("10-6").unwrap(), Expected::Extended("10-6".to_string()))
+        assert_eq!(Expected::from_str("10 - 6").unwrap(), Expected::Extended)
     }
     #[test]
     fn test_expected_unscheduled() {
@@ -159,6 +188,6 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_expected_unrecognized() {
-        assert_eq!(Expected::from_str("8-w").unwrap(), Expected::Core("8-w".to_string()))
+        assert_eq!(Expected::from_str("8 - w").unwrap(), Expected::Core)
     }
 }

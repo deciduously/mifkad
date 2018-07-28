@@ -19,6 +19,7 @@ mod data;
 mod errors {
     error_chain!{}
 }
+mod handlers;
 mod schema;
 
 //pub mod enrollment_capnp {
@@ -26,14 +27,12 @@ mod schema;
 //}
 
 use actix_web::{
-    fs::{NamedFile, StaticFiles}, http, middleware::{self, cors::Cors}, server::HttpServer, App,
-    HttpRequest,
+    fs::StaticFiles, http, middleware::{self, cors::Cors}, server::HttpServer, App,
 };
 
 use errors::*;
-use std::{
-    env::{set_var, var}, path::PathBuf,
-};
+use handlers::*;
+use std::env::{set_var, var};
 
 fn init_logging(level: u64) -> Result<()> {
     let verbosity = match level {
@@ -83,11 +82,6 @@ fn run() -> Result<()> {
         .start();
     let _ = sys.run();
     Ok(())
-}
-
-fn index(_req: HttpRequest) -> actix_web::Result<NamedFile> {
-    let path: PathBuf = PathBuf::from("./webapp/src/index.html");
-    Ok(NamedFile::open(path)?)
 }
 
 fn main() {

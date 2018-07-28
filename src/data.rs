@@ -45,11 +45,15 @@ fn scrape_enrollment() -> Result<School> {
                         match &row[1] {
                             String(s2) => {
                                 let capacity_caps = CAPACITY_RE.captures(&s2).unwrap();
-                                capacity = (&capacity_caps[1]).parse::<u8>().chain_err(|| "Unable to parse capacity as u8")?;
-                            },
-                            _ => bail!("Column B of Classroom declaration contained unexpected data")
+                                capacity = (&capacity_caps[1])
+                                    .parse::<u8>()
+                                    .chain_err(|| "Unable to parse capacity as u8")?;
+                            }
+                            _ => {
+                                bail!("Column B of Classroom declaration contained unexpected data")
+                            }
                         }
-                        
+
                         // create a new Classroom and push it to the school
                         let new_class = Classroom::new(caps[1].to_string(), capacity);
                         debug!("ADDED CLASS: {:?}", &new_class);
@@ -57,15 +61,26 @@ fn scrape_enrollment() -> Result<School> {
                     } else if KID_RE.is_match(&s) {
                         debug!("MATCH KID: {}", &s);
                         let caps = KID_RE.captures(&s).unwrap();
+
+                        // Reformat name from LAST, FIRST to FIRST LAST
                         let mut name = ::std::string::String::from(&caps["first"]);
                         name.push_str(" ");
                         name.push_str(&caps["last"]);
 
-                        let new_kid = Kid::new(name);
+                        // init Kid datatype
+                        let mut new_kid = Kid::new(name);
+
+                        // Add each schedule day
+                        new_kid.add_day("mon", &format!("{}", &row[6]));
+                        new_kid.add_day("tue", &format!("{}", &row[7]));
+                        new_kid.add_day("wed", &format!("{}", &row[8]));
+                        new_kid.add_day("thu", &format!("{}", &row[9]));
+                        new_kid.add_day("fri", &format!("{}", &row[10]));
 
                         // push the kid to the latest open class
-                        let mut classroom =
-                            school.classrooms.pop().expect("Kid found before classroom declaration - input file malformed");
+                        let mut classroom = school.classrooms.pop().expect(
+                            "Kid found before classroom declaration - input file malformed",
+                        );
                         classroom.push_kid(new_kid);
                         school.classrooms.push(classroom);
                     }
@@ -74,7 +89,7 @@ fn scrape_enrollment() -> Result<School> {
             }
         }
     }
-    println!("SCHOOL: {:#?}", school);
+    println!("SCHOOL: {:?}", school);
     Ok(school)
 }
 
