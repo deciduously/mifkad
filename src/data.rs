@@ -6,10 +6,9 @@ use errors::*;
 use regex::Regex;
 use schema::*;
 
-// enum Row {Class, Kid, Capacity} ?
-
-// pull_rows will read in the Enrollment excel sheet and populate the School
-fn scrape_enrollment() -> Result<School> {
+// scrape enrollment will read in the Enrollment excel sheet and populate the School
+// TODO parameterize the sheet location
+pub fn scrape_enrollment(day: &str) -> Result<School> {
     lazy_static! {
         // Define patterns to match
         static ref KID_RE: Regex =
@@ -56,7 +55,7 @@ fn scrape_enrollment() -> Result<School> {
 
                         // create a new Classroom and push it to the school
                         let new_class = Classroom::new(caps[1].to_string(), capacity);
-                        debug!("ADDED CLASS: {:?}", &new_class);
+                        info!("ADDED CLASS: {:?}", &new_class);
                         school.classrooms.push(new_class);
                     } else if KID_RE.is_match(&s) {
                         debug!("MATCH KID: {}", &s);
@@ -89,7 +88,8 @@ fn scrape_enrollment() -> Result<School> {
             }
         }
     }
-    println!("SCHOOL: {:?}", school);
+    info!("ENROLLMENT LOADED");
+    school.filter_day(day);
     Ok(school)
 }
 
@@ -101,7 +101,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_open_excel() {
-        scrape_enrollment().unwrap();
+        scrape_enrollment("all").unwrap();
         assert_eq!("write", "me")
     }
 }

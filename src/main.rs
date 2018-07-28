@@ -12,7 +12,11 @@ extern crate log;
 extern crate pretty_assertions;
 extern crate pretty_env_logger;
 extern crate regex;
-extern crate uuid;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+//extern crate uuid;
 
 mod data;
 //mod enrollment;
@@ -29,19 +33,23 @@ mod schema;
 use actix_web::{
     fs::StaticFiles, http, middleware::{self, cors::Cors}, server::HttpServer, App,
 };
-
 use errors::*;
 use handlers::*;
 use std::env::{set_var, var};
 
 fn init_logging(level: u64) -> Result<()> {
-    let verbosity = match level {
-        0 => "warn",
-        1 => "info",
-        2 => "debug",
-        3 | _ => "trace",
+    // if RUST_BACKTRACE is set, ignore the arg given and set `trace` no matter what
+    let verbosity = if var("RUST_BACKTRACE").unwrap_or("0".into()) == "1" {
+        "mifkad=trace"
+    } else {
+        match level {
+            0 => "warn",
+            1 => "info",
+            2 => "debug",
+            3 | _ => "trace",
+        }
     };
-    if verbosity == "trace" {
+    if verbosity == "mifkad=trace" {
         set_var("RUST_BACKTRACE", "1");
     };
     set_var("RUST_LOG", verbosity);
@@ -56,7 +64,7 @@ fn init_logging(level: u64) -> Result<()> {
 fn run() -> Result<()> {
     // Start env_logger - for now, change this number to change log level
     // I'm using it for all of main, just just actix-web
-    init_logging(2)?;
+    init_logging(1)?;
 
     // actix setup
     let sys = actix::System::new("mifkad");
@@ -72,6 +80,8 @@ fn run() -> Result<()> {
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
                         .resource("/", |r| r.method(http::Method::GET).with(index))
+                        // mon||monday, e.g., or all
+                        .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
                         .register()
                 }
             })

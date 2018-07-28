@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::str::FromStr;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Classroom {
     pub letter: String,
     pub capacity: u8,
@@ -22,7 +22,7 @@ impl Classroom {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Day {
     pub weekday: Weekday,
     pub expected: Expected,
@@ -39,7 +39,7 @@ impl Day {
 
 // TODO carry the actual schedule with this
 // Unimportant for now - we dont care beyond whether or not they go to extended
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub enum Expected {
     Core,
     Extended,
@@ -79,7 +79,7 @@ impl FromStr for Expected {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Kid {
     //pub id: Uuid,
     pub name: String,
@@ -101,7 +101,7 @@ impl Kid {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct School {
     pub classrooms: Vec<Classroom>,
 }
@@ -112,9 +112,19 @@ impl School {
             classrooms: Vec::new(),
         }
     }
+
+    // filter day returns a version of itself with only the relevant day
+    // accepts any string that can turn into a Weekday or "all"
+    pub fn filter_day(&mut self, day: &str) {
+        if day == "all" {
+            return;
+        } else {
+            let weekday = Weekday::from_str(day).unwrap();
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Weekday {
     Monday,
     Tuesday,
