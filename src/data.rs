@@ -6,6 +6,8 @@ use errors::*;
 use regex::Regex;
 use schema::*;
 
+// enum Row {Class, Kid, Capacity} ?
+
 // pull_rows will read in the Enrollment excel sheet and populate the School
 fn scrape_enrollment() -> Result<School> {
     lazy_static! {
@@ -23,8 +25,10 @@ fn scrape_enrollment() -> Result<School> {
 
     // Try to get "Sheet1" as `r` - it should always exist
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
+        // This is just for debugginging - shoudl be removed
         let mut idxs = String::new();
-        let active_class = ""; // use this to track?  maybe unnecessary?
+
+        // Process each row
         for row in r.rows() {
             debug!("ROW:");
             use calamine::DataType::*;
@@ -56,9 +60,10 @@ fn scrape_enrollment() -> Result<School> {
                         let new_kid = Kid::new(name);
 
                         // push the kid to the latest open class
-                        let mut classroom = school.classrooms.pop();
-                        //classroom.push_kid()
-                        //then push class back
+                        let mut classroom =
+                            school.classrooms.pop().expect("No open classroom to pop");
+                        classroom.push_kid(new_kid);
+                        school.classrooms.push(classroom);
                     }
                 }
                 _ => continue,
@@ -67,6 +72,7 @@ fn scrape_enrollment() -> Result<School> {
         }
         println!("{}", idxs)
     }
+    println!("SCHOOL: {:?}", school);
     Ok(school)
 }
 
