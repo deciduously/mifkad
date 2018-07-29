@@ -103,6 +103,7 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
         }
     }
     info!("ENROLLMENT LOADED - {:?}", weekday);
+    // TODO some sort of persistence?  maybe even just writing the flat file as json
     Ok(school)
 }
 

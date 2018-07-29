@@ -27,6 +27,7 @@ type school = { classrooms: array(classroom) };
 /* ReasonReact types */
      
 type state =
+  | ChooseDay
   | Loading
   | Error
   | Loaded(school);
@@ -69,7 +70,7 @@ let component = ReasonReact.reducerComponent("App");
 /* last one must be children */
 let make = _children => {
   ...component, /* spread the template's other defaults into here - otherwise it'd be in a double [|[|<child>|]|] */
-  initialState: _state => Loading,
+  initialState: _state => ChooseDay,
   reducer: (action, _state) =>
     switch (action) {
     | GetEnrollment(s) =>
@@ -78,7 +79,7 @@ let make = _children => {
       (
         self =>
           Js.Promise.(
-        Fetch.fetch("http://127.0.0.1:8080/school/mon") /* TODO string inpterpolate s */
+        Fetch.fetch("http://127.0.0.1:8080/school/" ++ s) /* TODO string inpterpolate s */
         |> then_(Fetch.Response.json)
         |> then_(json =>
                  json
@@ -96,9 +97,31 @@ let make = _children => {
     | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     },
-  didMount: self => self.send(GetEnrollment("mon")),
+  /* didMount: self => self.send(GetEnrollment("tue")), */ /* We don't need to do this, user chooses day first */
   render: self =>
     switch (self.state) {
+    | ChooseDay =>
+      <div>
+        <h2> (ReasonReact.string("Please select day:")) </h2>
+        <br />
+        <div>
+          <button onClick=(_event => self.send(GetEnrollment("mon")))>
+            {ReasonReact.string("Monday")}
+           </button>
+           <button onClick=(_event => self.send(GetEnrollment("tue")))>
+              {ReasonReact.string("Tuesday")}
+           </button>
+        <button onClick=(_event => self.send(GetEnrollment("wed")))>
+          {ReasonReact.string("Wednesday")}
+        </button>
+        <button onClick=(_event => self.send(GetEnrollment("thu")))>
+          {ReasonReact.string("Thursday")}
+        </button>
+        <button onClick=(_event => self.send(GetEnrollment("fri")))>
+          {ReasonReact.string("Friday")}
+        </button>
+      </div>
+      </div>
     | Error => <div> (ReasonReact.string("An error occured connecting to the backend.  Check the server log.")) </div>
     | Loading => <div> (ReasonReact.string("Loading...")) </div>
     | Loaded(school) =>
