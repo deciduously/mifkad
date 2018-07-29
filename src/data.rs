@@ -19,6 +19,9 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
     // initialize return struct
     let mut school = School::new();
 
+    // identify day
+    let weekday = Weekday::from_str(day);
+
     // Use calamind to read in the input sheet
     // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
     let mut excel: Xlsx<_> = open_workbook("sample/sample_enroll_all_detail_week.xlsx").unwrap();
@@ -69,12 +72,15 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
                         // init Kid datatype
                         let mut new_kid = Kid::new(name);
 
-                        // Add each schedule day
-                        new_kid.add_day("mon", &format!("{}", &row[6]));
-                        new_kid.add_day("tue", &format!("{}", &row[7]));
-                        new_kid.add_day("wed", &format!("{}", &row[8]));
-                        new_kid.add_day("thu", &format!("{}", &row[9]));
-                        new_kid.add_day("fri", &format!("{}", &row[10]));
+                        // Add schedule day
+                        let sched_idx = match weekday {
+                            Weekday::Monday => 6,
+                            Weekday::Tuesday => 7,
+                            Weekday::Wednesday => 8,
+                            Weekday::Thursday => 9,
+                            Weekday::Friday => 10,
+                        }
+                        new_kid.add_day(day, &format!("{}", &row[sched_idx]));
 
                         // push the kid to the latest open class
                         let mut classroom = school.classrooms.pop().expect(
