@@ -3,7 +3,8 @@
   comma. If this screws with your editor highlighting, please tell us by filing
   an issue! */
 {
-  "name": "mifkad",
+    "name": "mifkad",
+    "bsc-flags": ["-bs-super-errors"],
   "reason": {
     "react-jsx": 2
   },
@@ -18,7 +19,9 @@
   "suffix": ".bs.js",
   "namespace": true,
   "bs-dependencies": [
-    "reason-react"
+      "reason-react",
+      "bs-fetch",
+      "@glennsl/bs-json"
   ],
   "refmt": 3
 }
