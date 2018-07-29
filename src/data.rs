@@ -74,7 +74,7 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
                         name.push_str(&caps["last"]);
 
                         // init Kid datatype
-                        let mut new_kid = Kid::new(name);
+                        
 
                         // Add schedule day
                         let sched_idx = match weekday {
@@ -85,10 +85,10 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
                             Weekday::Friday => 10,
                         };
                         let sched = &row[sched_idx];
-                        new_kid.add_day(day, &format!("{}", sched));
+                        let mut new_kid = Kid::new(name, day, &format!("{}", sched));
                         info!(
                             "FOUND KID: {} - {} ({:?})",
-                            new_kid.name, sched, new_kid.schedule[0].expected
+                            new_kid.name, sched, new_kid.schedule.expected
                         );
                         // push the kid to the latest open class
                         let mut classroom = school.classrooms.pop().expect(

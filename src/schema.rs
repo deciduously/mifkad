@@ -26,6 +26,7 @@ impl Classroom {
 pub struct Day {
     pub weekday: Weekday,
     pub expected: Expected,
+    pub actual: bool,
 }
 
 impl Day {
@@ -33,6 +34,7 @@ impl Day {
         Self {
             weekday: Weekday::from_str(day).unwrap(),
             expected: Expected::from_str(schedule).unwrap(),
+            actual: true,
         }
     }
 }
@@ -83,21 +85,16 @@ impl FromStr for Expected {
 pub struct Kid {
     //pub id: Uuid,
     pub name: String,
-    pub schedule: Vec<Day>,
+    pub schedule: Day,
 }
 
 impl Kid {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, day_str: &str, sched_str: &str) -> Self {
         Self {
             //id: Uuid::new_v4(), // random
             name,
-            schedule: Vec::new(),
+            schedule: Day::new(day_str, sched_str),
         }
-    }
-    pub fn add_day(&mut self, day_str: &str, sched_str: &str) {
-        // TODO check if day already exists - therese should be unique
-        // a HashMap is probably a better idea, luckily we can keep this fn
-        self.schedule.push(Day::new(day_str, sched_str));
     }
 }
 

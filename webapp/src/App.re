@@ -5,14 +5,15 @@ open Belt;
 
 /* type expected = Core | Extended | Unscheduled; */
 
-type schedule = {
+type day = {
   weekday: string,
   expected: string,
+  actual: bool,
 };
 
 type kid = {
   name: string,
-  schedule: array(schedule),
+  schedule: day,
 };
 
 type classroom = {
@@ -36,16 +37,17 @@ type action =
   | EnrollmentFailedToGet;
 
 module Decode = {
-  let schedule = json: schedule =>
+  let day = json: day =>
     Json.Decode.({
     weekday: json |> field("weekday", string),
-    expected: json |> field("expected", string)
+    expected: json |> field("expected", string),
+    actual: json |> field("actual", bool)
   });
 
   let kid = json: kid =>
     Json.Decode.({
     name: json |> field("name", string),
-    schedule: json |> field("schedule", array(schedule)) |> Array.map(_, schedule => schedule)
+    schedule: json |> field("schedule", day)
   });
 
   let classroom = json: classroom =>
@@ -97,11 +99,11 @@ let make = _children => {
   didMount: self => self.send(GetEnrollment("mon")),
   render: self =>
     switch (self.state) {
-    | Error => <div> (ReasonReact.string("OH NO AN ERROR")) </div>
+    | Error => <div> (ReasonReact.string("An error occured connecting to the backend.  Check the server log.")) </div>
     | Loading => <div> (ReasonReact.string("Loading...")) </div>
     | Loaded(school) =>
       let cname =
-      switch (school.classrooms[0]) {
+      switch (school.classrooms[4]) {
       | None => "No class found in mon"
       | Some(s) => s.letter
       };
