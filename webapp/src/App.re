@@ -15,7 +15,7 @@ type action =
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
   | ResetDay
-  | Toggle(school);
+  | Toggle(school, string);
 
 module Decode = {
   let day = json: day =>
@@ -60,7 +60,7 @@ let make = _children => {
       (
         self =>
           Js.Promise.(
-        Fetch.fetch("http://127.0.0.1:8080/school/" ++ s) /* TODO string inpterpolate s */
+        Fetch.fetch("http://127.0.0.1:8080/school/" ++ s)
         |> then_(Fetch.Response.json)
         |> then_(json =>
                  json
@@ -78,7 +78,7 @@ let make = _children => {
     | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
-    | Toggle(school) => ReasonReact.Update(Loaded(school))
+    | Toggle(school, name) => ReasonReact.UpdateWithSideEffects(Loading, self => self.send(Loaded(school)))
     },
   /* didMount: self => self.send(GetEnrollment("tue")), */ /* We don't need to do this, user chooses day first */
   render: self =>
@@ -115,7 +115,7 @@ let make = _children => {
           <hr />
           <FileConsole onClick=(_event => self.send(ResetDay))/>
           <hr />
-          <Roster school=school onClick=(_event => self.send(Toggle(school))) />
+          <Roster school=school onClick=(event => self.send(Toggle(school, event))) />
           <hr />
           /*<Roster roster="RosterPlaceholder2" />*/
           <hr />
