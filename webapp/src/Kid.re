@@ -10,12 +10,12 @@ let component = ReasonReact.statelessComponent("Kid");
 /* greeting and children are props. `children` isn't used, therefore ignored.
    We ignore it by prepending it with an underscore */
 let make = (~kid : kid, ~onClick, _children) => {
-  let click = (_event) => onClick(kid.name);
+  let click = (_event) => onClick(kid); /* When the button is clicked, pass the kid on up with the callback */
   {
   /* spread the other default fields of component here and override a few */
     ...component,
     
-    render: self => {
+    render: _self => {
       let button_class = kid.schedule.actual ? "In" : "Out";
       <button className=button_class onClick=click>
           {ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class)}

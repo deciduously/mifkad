@@ -15,7 +15,8 @@ type action =
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
   | ResetDay
-  | Toggle(school, string);
+  /* Toggle carries a kid payload, not just a name? */
+  | Toggle(school, kid);
 
 module Decode = {
   let day = json: day =>
@@ -78,7 +79,7 @@ let make = _children => {
     | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
-    | Toggle(school, name) => ReasonReact.UpdateWithSideEffects(Loading, self => self.send(Loaded(school)))
+    | Toggle(school, kid) => ReasonReact.Update(Loaded(toggle(school, kid)))
     },
   /* didMount: self => self.send(GetEnrollment("tue")), */ /* We don't need to do this, user chooses day first */
   render: self =>

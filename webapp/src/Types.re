@@ -25,3 +25,19 @@ type school = {
   classrooms: array(classroom),
   weekday: string
 };
+
+/* Returns a school with the given name toggled */
+let toggle = (school, kid) =>
+  {...school,
+   classrooms: Array.map(room =>
+                         {...room,
+                          kids: Array.map(k =>
+                                          if (kid == k) {
+                                            {...kid,
+                                             schedule: {...kid.schedule,
+                                                        actual: !kid.schedule.actual } }
+                                          } else {
+                                            k
+                                          }
+                                          , room.kids)},
+                         school.classrooms)};
