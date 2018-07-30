@@ -90,12 +90,17 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
                             "FOUND KID: {} - {} ({:?})",
                             new_kid.name, sched, new_kid.schedule.expected
                         );
-                        // push the kid to the latest open class
-                        let mut classroom = school.classrooms.pop().expect(
+                        // If the kid is scheduled, push the kid to the latest open class
+                        if new_kid.schedule.expected == Expected::Unscheduled {
+                            info!("Not scheduled onr equested day - omitting from response");
+                        } else {
+                            let mut classroom = school.classrooms.pop().expect(
                             "Kid found before classroom declaration - input file malformed",
-                        );
-                        classroom.push_kid(new_kid);
-                        school.classrooms.push(classroom);
+                            );
+                            classroom.push_kid(new_kid);
+                            school.classrooms.push(classroom);
+                            info!("Adding to response");
+                        }
                     }
                 }
                 _ => continue,
