@@ -2,36 +2,20 @@
 
 open Types;
 
-/* State declaration */
-type state = {
-  present: bool,
-};
-
-/* Action declaration */
-type action =
-  | Toggle;
-
 /* Component template declaration.
-   Needs to be **after** state and action declarations! */
-let component = ReasonReact.reducerComponent("Kid");
+   Needs to be **after** state and action declarations! 
+   This is a stateless component - all it will do it pass the message back up to the App root */
+let component = ReasonReact.statelessComponent("Kid");
 
 /* greeting and children are props. `children` isn't used, therefore ignored.
    We ignore it by prepending it with an underscore */
-let make = (~kid : kid, _children) => {
+let make = (~kid : kid, ~onClick, _children) => {
   /* spread the other default fields of component here and override a few */
   ...component,
 
-  initialState: () => {present: true},
-
-  /* State transitions */
-  reducer: (action, state) =>
-    switch (action) {
-    | Toggle => ReasonReact.Update({present: ! state.present}) /* present is the whole state, no ...state needed */
-    },
-
   render: self => {
-  let button_class = self.state.present ? "In" : "Out";
-      <button className=button_class onClick=(_event => self.send(Toggle))>
+      let button_class = kid.schedule.actual ? "In" : "Out";
+      <button className=button_class onClick=onClick>
         {ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class)}
       </button>
   },

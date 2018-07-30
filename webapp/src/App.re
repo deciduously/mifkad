@@ -14,7 +14,8 @@ type action =
   | GetEnrollment(string) /* This is the day */
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
-  | ResetDay;
+  | ResetDay
+  | Toggle(school);
 
 module Decode = {
   let day = json: day =>
@@ -77,6 +78,7 @@ let make = _children => {
     | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
+    | Toggle(school) => ReasonReact.Update(Loaded(school))
     },
   /* didMount: self => self.send(GetEnrollment("tue")), */ /* We don't need to do this, user chooses day first */
   render: self =>
@@ -113,7 +115,7 @@ let make = _children => {
           <hr />
           <FileConsole onClick=(_event => self.send(ResetDay))/>
           <hr />
-          <Roster school=school />
+          <Roster school=school onClick=(_event => self.send(Toggle(school))) />
           <hr />
           /*<Roster roster="RosterPlaceholder2" />*/
           <hr />

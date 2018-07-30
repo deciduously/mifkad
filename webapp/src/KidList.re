@@ -3,13 +3,13 @@ open Types;
 
 let component = ReasonReact.statelessComponent("KidList");
 
-let make = (~kids : array(kid), _children) => {
+let make = (~kids : array(kid), ~onClick, _children) => {
   ...component,
   render: _self => {
     <ul className="kidlist">
         (
     Array.map(k => {
-         <li key=k.name className="kid"> <Kid kid=k /> </li>
+         <li key=k.name className="kid"> <Kid kid=k onClick=onClick /> </li>
     },
               kids
         )
