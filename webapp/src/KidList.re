@@ -1,4 +1,6 @@
 /* Kidlist.re is responsible for rendering the list of kids in a room */
+open Types;
+
 let component = ReasonReact.statelessComponent("KidList");
 
 let make = (~kids, _children) => {
@@ -6,7 +8,7 @@ let make = (~kids, _children) => {
   render: _self => {
   <ul className="kidlist">
     <li className="capacity">{ReasonReact.string("Capacity")}</li>
-    <Kid name="Placeholder Kid" />
+    <Kid kid=kids[0] />
 </ul>
 }
 }

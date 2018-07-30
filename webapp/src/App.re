@@ -1,28 +1,6 @@
 /* App.re - main container */
 open Belt;
-
-/* payload types to match types in /src/schema.rs */
-
-/* type expected = Core | Extended | Unscheduled; */
-
-type day = {
-  weekday: string,
-  expected: string,
-  actual: bool,
-};
-
-type kid = {
-  name: string,
-  schedule: day,
-};
-
-type classroom = {
-  letter: string,
-  capacity: int,
-  kids: array(kid),
-};
-
-type school = { classrooms: array(classroom) };
+open Types;
 
 /* ReasonReact types */
      
@@ -111,34 +89,28 @@ let make = _children => {
            <button onClick=(_event => self.send(GetEnrollment("tue")))>
               {ReasonReact.string("Tuesday")}
            </button>
-        <button onClick=(_event => self.send(GetEnrollment("wed")))>
-          {ReasonReact.string("Wednesday")}
-        </button>
-        <button onClick=(_event => self.send(GetEnrollment("thu")))>
-          {ReasonReact.string("Thursday")}
-        </button>
-        <button onClick=(_event => self.send(GetEnrollment("fri")))>
-          {ReasonReact.string("Friday")}
-        </button>
-      </div>
+          <button onClick=(_event => self.send(GetEnrollment("wed")))>
+            {ReasonReact.string("Wednesday")}
+          </button>
+          <button onClick=(_event => self.send(GetEnrollment("thu")))>
+            {ReasonReact.string("Thursday")}
+          </button>
+          <button onClick=(_event => self.send(GetEnrollment("fri")))>
+            {ReasonReact.string("Friday")}
+          </button>
+        </div>
       </div>
     | Error => <div> (ReasonReact.string("An error occured connecting to the backend.  Check the server log.")) </div>
     | Loading => <div> (ReasonReact.string("Loading...")) </div>
     | Loaded(school) =>
-      let cname =
-      switch (school.classrooms[4]) {
-      | None => "No class found in mon"
-      | Some(s) => s.letter
-      };
         <div id="app">
           <h1>{ReasonReact.string("Attendance")}</h1>
           <hr />
             <FileConsole />
-              {ReasonReact.string(cname)}
           <hr />
-          <Roster roster="Placeholder 1" /> /* children */
+          <Roster roster=school />
           <hr />
-          <Roster roster="RosterPlaceholder2" />
+          /*<Roster roster="RosterPlaceholder2" />*/
           <hr />
           <footer>
             {ReasonReact.string("\xA9 2018 deciduously - ")}
