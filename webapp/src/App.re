@@ -108,7 +108,7 @@ let make = _children => {
           <hr />
             <FileConsole />
           <hr />
-          <Roster roster=school />
+          <Roster school=school />
           <hr />
           /*<Roster roster="RosterPlaceholder2" />*/
           <hr />

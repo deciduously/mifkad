@@ -17,7 +17,7 @@ let component = ReasonReact.reducerComponent("Kid");
 
 /* greeting and children are props. `children` isn't used, therefore ignored.
    We ignore it by prepending it with an underscore */
-let make = (~kid, _children) => {
+let make = (~kid : kid, _children) => {
   /* spread the other default fields of component here and override a few */
   ...component,
 
@@ -31,9 +31,9 @@ let make = (~kid, _children) => {
 
   render: self => {
   let button_class = self.state.present ? "In" : "Out";
-    <li className="kid">
+    <li key=kid.name className="kid">
       <button className=button_class onClick=(_event => self.send(Toggle))>
-        {ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ button_class)}
+        {ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class)}
       </button>
     </li>;
   },
