@@ -17,13 +17,12 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
         static ref CLASS_RE: Regex = Regex::new(r"CLASSROOM: ([A-Z])").unwrap();
         static ref CAPACITY_RE: Regex = Regex::new(r"CLASS MAXIMUM: (\d+)").unwrap();
     }
-    // initialize return struct
-    let mut school = School::new();
-
+    
     // identify day
     let weekday = Weekday::from_str(day).chain_err(|| format!("Not a real day: {}", day))?;
     info!("Loading {:?} from Enrollment export", weekday);
-
+    let mut school = School::new(&weekday);
+    
     // Use calamind to read in the input sheet
     // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
     let mut excel: Xlsx<_> = open_workbook("sample/sample_enroll_all_detail_week.xlsx").unwrap();
@@ -92,7 +91,7 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
                         );
                         // If the kid is scheduled, push the kid to the latest open class
                         if new_kid.schedule.expected == Expected::Unscheduled {
-                            info!("Not scheduled onr equested day - omitting from response");
+                            info!("Not scheduled - omitting from response");
                         } else {
                             let mut classroom = school.classrooms.pop().expect(
                             "Kid found before classroom declaration - input file malformed",

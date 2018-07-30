@@ -21,4 +21,7 @@ type classroom = {
   kids: array(kid),
 };
 
-type school = { classrooms: array(classroom) };
+type school = {
+  classrooms: array(classroom),
+  weekday: string
+};

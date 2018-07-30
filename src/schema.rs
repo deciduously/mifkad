@@ -100,18 +100,20 @@ impl Kid {
 
 #[derive(Debug, Serialize)]
 pub struct School {
+    pub weekday: Weekday,
     pub classrooms: Vec<Classroom>,
 }
 
 impl School {
-    pub fn new() -> Self {
+    pub fn new(day: &Weekday) -> Self {
         Self {
+            weekday: day.clone(),
             classrooms: Vec::new(),
         }
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub enum Weekday {
     Monday,
     Tuesday,

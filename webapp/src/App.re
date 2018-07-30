@@ -13,7 +13,8 @@ type state =
 type action =
   | GetEnrollment(string) /* This is the day */
   | EnrollmentReceived(school)
-  | EnrollmentFailedToGet;
+  | EnrollmentFailedToGet
+  | ResetDay;
 
 module Decode = {
   let day = json: day =>
@@ -38,6 +39,7 @@ module Decode = {
 
   let school = json: school =>
     Json.Decode.({
+    weekday: json |> field("weekday", string),
     classrooms: json |> field("classrooms", array(classroom)) |> Array.map(_, classroom => classroom)
  });
 };
@@ -74,6 +76,7 @@ let make = _children => {
     )
     | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
+    | ResetDay => ReasonReact.Update(ChooseDay)
     },
   /* didMount: self => self.send(GetEnrollment("tue")), */ /* We don't need to do this, user chooses day first */
   render: self =>
@@ -104,17 +107,21 @@ let make = _children => {
     | Loading => <div> (ReasonReact.string("Loading...")) </div>
     | Loaded(school) =>
         <div id="app">
-          <h1>{ReasonReact.string("Attendance")}</h1>
+          <h1>
+              (ReasonReact.string("Attendance - " ++ school.weekday))
+          </h1>
           <hr />
-            <FileConsole />
+          <FileConsole onClick=(_event => self.send(ResetDay))/>
           <hr />
           <Roster school=school />
           <hr />
           /*<Roster roster="RosterPlaceholder2" />*/
           <hr />
           <footer>
-            {ReasonReact.string("\xA9 2018 deciduously - ")}
-            <a href="https://github.com/deciduously/mifkad">{ReasonReact.string("source")}</a>
+            (ReasonReact.string("\xA9 2018 deciduously - "))
+            <a href="https://github.com/deciduously/mifkad">
+                (ReasonReact.string("source"))
+            </a>
           </footer>
         </div>
         }
