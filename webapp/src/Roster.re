@@ -10,7 +10,7 @@ let make = (~school, _children) => {
     <ul className="classList">
         (
     Array.map(classroom => {
-          <Room room=classroom />;
+         <li key=classroom.letter className="room"> <Room room=classroom /> </li>;
         },
               school.classrooms
         )

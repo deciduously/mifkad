@@ -9,7 +9,7 @@ let make = (~kids : array(kid), _children) => {
     <ul className="kidlist">
         (
     Array.map(k => {
-          <Kid kid=k />
+         <li key=k.name className="kid"> <Kid kid=k /> </li>
     },
               kids
         )

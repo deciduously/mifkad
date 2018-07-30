@@ -31,10 +31,8 @@ let make = (~kid : kid, _children) => {
 
   render: self => {
   let button_class = self.state.present ? "In" : "Out";
-    <li key=kid.name className="kid">
       <button className=button_class onClick=(_event => self.send(Toggle))>
         {ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class)}
       </button>
-    </li>;
   },
 };
