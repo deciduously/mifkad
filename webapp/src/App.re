@@ -115,6 +115,7 @@ let make = _children => {
           </h1>
           <hr />
           <FileConsole onClick=(_event => self.send(ResetDay))/>
+          <button onClick=(_event => Js.log(report(school)))>(ReasonReact.string("report"))</button>
           <hr />
           <Roster school=school onClick=(event => self.send(Toggle(school, event))) />
           <hr />

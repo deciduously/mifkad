@@ -41,3 +41,16 @@ let toggle = (school, kid) =>
                                           }
                                           , room.kids)},
                          school.classrooms)};
+
+/* Returns a single string reporting the school's attendance */
+let report = school =>
+  Array.fold_left((acc, room) =>
+                  acc ++ " " ++
+                  room.letter ++
+                  Array.fold_left((inner_acc, kid) =>
+                                  inner_acc ++ " - " ++ kid.name ++ ": " ++ (kid.schedule.actual ? "Here" : "Absent"),
+                                  "",
+                                  room.kids)
+                  ++ "\n",
+                  "",
+                  school.classrooms)
