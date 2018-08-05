@@ -4,6 +4,8 @@
 
 /* type expected = Core | Extended | Unscheduled; */
 
+/* Type declarations */
+/* cool - these are completely optimized away in the compiled js */
 type day = {
   weekday: string,
   expected: string,
@@ -26,6 +28,9 @@ type school = {
   weekday: string
 };
 
+/* Returns an abridged classroom containing only the absent kids */
+/*let absent = classroom => */
+
 /* Returns a school with the given name toggled */
 let toggle = (school, kid) =>
   {...school,
@@ -40,17 +45,44 @@ let toggle = (school, kid) =>
                                             k
                                           }
                                           , room.kids)},
-                         school.classrooms)};
+                         school.classrooms)
+};
 
 /* Returns a single string reporting the school's attendance */
-let report = school =>
-  Array.fold_left((acc, room) =>
-                  acc ++ " " ++
-                  room.letter ++
-                  Array.fold_left((inner_acc, kid) =>
-                                  inner_acc ++ " - " ++ kid.name ++ ": " ++ (kid.schedule.actual ? "Here" : "Absent"),
-                                  "",
-                                  room.kids)
-                  ++ "\n",
-                  "",
-                  school.classrooms)
+/* Written to match output from the original ClojureScript version */
+/* found at https://github.com/deciduously/attendance/blob/master/src/cljs/attendance/report.cljs */
+/* One difference is that had a fn to only grab the absent kids, here I just didn't display those */
+/* Jury's out on which is superior */
+module Report = {
+  /* Takes FIRSTNAME LASTNAME and returns Firstname L. */
+  let to_fmt_name = name => {
+    let idx_of_spc = String.index(name, ' ');
+    
+    let first_name = String.sub(name, 0, idx_of_spc) /* start_idx, len */
+    |> String.lowercase
+    |> String.capitalize;
+    
+    let last_initial = String.sub(name, idx_of_spc + 1, 1);
+
+    first_name ++ " " ++ last_initial ++ "."
+  };
+  
+  let kid = kid: string => {
+    kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", "
+  };
+  
+  let classroom = classroom: string => {
+    let kidlist = Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids);
+    "Room " ++ classroom.letter ++ ": " ++
+      /* Check if empty, and if it's not empty, trim off the trialing comma */
+      (String.length(kidlist) > 0 ? String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here")
+      ++ "\n"
+  };
+  
+  let school = school: string => {
+    Array.fold_left((acc, room) =>
+                    acc ++ classroom(room),
+                    "",
+                    school.classrooms)    
+  };
+};

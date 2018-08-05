@@ -110,12 +110,13 @@ let make = _children => {
     | Loading => <div> (ReasonReact.string("Loading...")) </div>
     | Loaded(school) =>
         <div id="app">
-          <h1>
+          <h1>(ReasonReact.string("Mifkad"))</h1>
+          <h2>
               (ReasonReact.string("Attendance - " ++ school.weekday))
-          </h1>
+          </h2>
           <hr />
           <FileConsole onClick=(_event => self.send(ResetDay))/>
-          <button onClick=(_event => Js.log(report(school)))>(ReasonReact.string("report"))</button>
+          <button onClick=(_event => Js.log(Report.school(school)))>(ReasonReact.string("report"))</button>
           <hr />
           <Roster school=school onClick=(event => self.send(Toggle(school, event))) />
           <hr />
