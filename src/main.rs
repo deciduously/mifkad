@@ -31,7 +31,11 @@ mod schema;
 //}
 
 use actix_web::{
-    fs::StaticFiles, http, middleware::{self, cors::Cors}, server::HttpServer, App,
+    fs::StaticFiles,
+    http,
+    middleware::{self, cors::Cors},
+    server::HttpServer,
+    App,
 };
 use errors::*;
 use handlers::*;

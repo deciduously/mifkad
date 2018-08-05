@@ -3,25 +3,29 @@
   comma. If this screws with your editor highlighting, please tell us by filing
   an issue! */
 {
-    "name": "mifkad",
-    "bsc-flags": ["-bs-super-errors"],
+  "name": "mifkad",
+  "bsc-flags": [
+    "-bs-super-errors"
+  ],
   "reason": {
     "react-jsx": 2
   },
   "sources": {
-    "dir" : "webapp/src",
-    "subdirs" : true
+    "dir": "webapp/src",
+    "subdirs": true
   },
-  "package-specs": [{
-    "module": "es6",
-    "in-source": true
-  }],
+  "package-specs": [
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
   "suffix": ".bs.js",
   "namespace": true,
   "bs-dependencies": [
-      "reason-react",
-      "bs-fetch",
-      "@glennsl/bs-json"
+    "reason-react",
+    "bs-fetch",
+    "@glennsl/bs-json"
   ],
   "refmt": 3
 }
