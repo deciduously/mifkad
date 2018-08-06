@@ -7,20 +7,22 @@ open Types /* Component template declaration.
 let component = ReasonReact.statelessComponent("Kid") /* greeting and children are props. `children` isn't used, therefore ignored.
    We ignore it by prepending it with an underscore */;
 
-let make = (~kid: kid, ~onClick, _children) => {
+let make = (~kid: kid, ~onClick, ~core, _children) => {
   let click = _event => onClick(kid) /* When the button is clicked, pass the kid on up with the callback */;
   {
     /* spread the other default fields of component here and override a few */
     ...component,
     render: _self => {
       let button_class = kid.schedule.actual ? "In" : "Out";
+      core ?
       <button className=button_class onClick=click>
         (
           ReasonReact.string(
             kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class,
           )
         )
-      </button>;
+    </button>
+    : <div className=button_class>(ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class))</div>;
     },
   };
 };

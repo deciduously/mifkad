@@ -123,8 +123,9 @@ let make = _children => {
           (ReasonReact.string("report"))
         </button>
         <hr />
-        <Roster school onClick=(event => self.send(Toggle(school, event))) />
-        <hr /> /*<Roster roster="RosterPlaceholder2" />*/
+        <Roster school onClick=(event => self.send(Toggle(school, event))) core=true /> /* true means it'll have toggleable buttons */
+        <hr />
+        <Roster school onClick=(_event => ()) core=false />
         <hr />
         <footer>
           (ReasonReact.string("\xA9 2018 deciduously - "))

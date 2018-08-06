@@ -3,7 +3,7 @@ open Types;
 
 let component = ReasonReact.statelessComponent("Roster");
 
-let make = (~school, ~onClick, _children) => {
+let make = (~school, ~onClick, ~core, _children) => {
   ...component,
   render: _self =>
     <div className="roster">
@@ -12,7 +12,7 @@ let make = (~school, ~onClick, _children) => {
           Array.map(
             classroom =>
               <li key=classroom.letter className="room">
-                <Room room=classroom onClick />
+                <Room room=classroom onClick core />
               </li>,
             school.classrooms,
           )

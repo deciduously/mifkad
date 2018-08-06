@@ -3,7 +3,7 @@ open Types;
 
 let component = ReasonReact.statelessComponent("Room");
 
-let make = (~room: classroom, ~onClick, _children) => {
+let make = (~room: classroom, ~onClick, ~core, _children) => {
   ...component,
   render: _self =>
     <div className="roomContent">
@@ -14,6 +14,6 @@ let make = (~room: classroom, ~onClick, _children) => {
           )
         )
       </h4>
-      <KidList kids=room.kids onClick />
+      <KidList kids=room.kids onClick core />
     </div>,
 };

@@ -26,7 +26,10 @@ type classroom = {
 type school = {
   classrooms: array(classroom),
   weekday: string,
-} /* Returns a school with the given name toggled */ /*let absent = classroom => */ /* Returns an abridged classroom containing only the absent kids */;
+};
+
+/* TODO */
+let get_extended = school => school;
 
 let toggle = (school, kid) => {
   ...school,
