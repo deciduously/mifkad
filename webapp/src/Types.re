@@ -28,12 +28,26 @@ type school = {
   weekday: string,
 };
 
+let get_extended_letter = letter =>
+  switch (letter) {
+  | "A" => "AE"
+  | "C" => "CE"
+  | "B" | "D" => "DE"
+  | "E" | "F" | "G" => "EE"
+  | "I" | "J" | "K" => "JE"
+  | "N" | "O" => "NE"
+  | _ => "ERR!!!"
+  };
+
 let get_extended_kids = school =>
-/* Returns a school with only the Extended Day kids */
+/* Returns a school with only the Extended Day kids, filtered into the proper classrooms */
+/* We know what room we're in from `r` - use that to properly funnel */
+  /* How do we swuash like classrooms together? */
   {...school,
    classrooms:
    Array.map(r => {
     ...r,
+    letter: get_extended_letter(r.letter),
     kids: Array.of_list(
      List.filter(k =>
                  (k.schedule.expected == "Extended"),
@@ -93,6 +107,21 @@ module Report = {
     let last_initial = String.sub(name, idx_of_spc + 1, 1);
 
     first_name ++ " " ++ last_initial ++ ".";
+  };
+  
+   let to_disp_name = name => {
+    let idx_of_spc = String.index(name, ' ');
+
+    let first_name =
+      String.sub(name, 0, idx_of_spc) /* start_idx, len */
+      |> String.lowercase
+      |> String.capitalize;
+
+     let last_name = String.sub(name, idx_of_spc + 1, String.length(name) - (idx_of_spc + 1))
+     |> String.lowercase
+     |> String.capitalize;
+
+    first_name ++ " " ++ last_name;
   };
 
   let kid = kid : string =>

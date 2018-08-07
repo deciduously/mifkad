@@ -18,11 +18,11 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
       <button className=button_class onClick=click>
         (
           ReasonReact.string(
-            kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class,
+            Report.to_disp_name(kid.name) ++ " - " ++ button_class,
           )
         )
     </button>
-    : <div className=button_class>(ReasonReact.string(kid.name ++ " - " ++ kid.schedule.expected ++ " : " ++ button_class))</div>;
+    : <div className=button_class>(ReasonReact.string(Report.to_disp_name(kid.name) ++ " - " ++ button_class))</div>;
     },
   };
 };
