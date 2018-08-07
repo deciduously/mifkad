@@ -95,8 +95,8 @@ module Report = {
     /* Returns a single string reporting the school's attendance */
     /* original CLJS found at https://github.com/deciduously/attendance/blob/master/src/cljs/attendance/report.cljs */
     
-  /* Takes FIRSTNAME LASTNAME and returns Firstname L. */
   let to_fmt_name = name => {
+  /* Takes FIRSTNAME LASTNAME and returns Firstname L. */
     let idx_of_spc = String.index(name, ' ');
 
     let first_name =
@@ -107,21 +107,6 @@ module Report = {
     let last_initial = String.sub(name, idx_of_spc + 1, 1);
 
     first_name ++ " " ++ last_initial ++ ".";
-  };
-  
-   let to_disp_name = name => {
-    let idx_of_spc = String.index(name, ' ');
-
-    let first_name =
-      String.sub(name, 0, idx_of_spc) /* start_idx, len */
-      |> String.lowercase
-      |> String.capitalize;
-
-     let last_name = String.sub(name, idx_of_spc + 1, String.length(name) - (idx_of_spc + 1))
-     |> String.lowercase
-     |> String.capitalize;
-
-    first_name ++ " " ++ last_name;
   };
 
   let kid = kid : string =>
