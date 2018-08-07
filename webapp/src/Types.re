@@ -28,10 +28,28 @@ type school = {
   weekday: string,
 };
 
-/* TODO */
-let get_extended = school => school;
+let get_extended_kids = school =>
+/* Returns a school with only the Extended Day kids */
+  {...school,
+   classrooms:
+   Array.map(r => {
+    ...r,
+    kids: Array.of_list(
+     List.filter(k =>
+                 (k.schedule.expected == "Extended"),
+                 Array.to_list(r.kids)
+    )
+   )
+  },
+  school.classrooms)
+};
+
+let get_extended_rooms = school =>
+  /* TODO Returns a school of Extended Day kids flattened into the proper classrooms */
+  get_extended_kids(school);
 
 let toggle = (school, kid) => {
+  /* Returns a new school with the specified kid toggled */
   ...school,
   classrooms:
     Array.map(
@@ -56,9 +74,13 @@ let toggle = (school, kid) => {
       },
       school.classrooms,
     ),
-} /* Jury's out on which is superior */ /* One difference is that had a fn to only grab the absent kids, here I just didn't display those */ /* found at https://github.com/deciduously/attendance/blob/master/src/cljs/attendance/report.cljs */ /* Written to match output from the original ClojureScript version */ /* Returns a single string reporting the school's attendance */;
+}; 
 
 module Report = {
+    /* Written to match output from the original ClojureScript version */
+    /* Returns a single string reporting the school's attendance */
+    /* original CLJS found at https://github.com/deciduously/attendance/blob/master/src/cljs/attendance/report.cljs */
+    
   /* Takes FIRSTNAME LASTNAME and returns Firstname L. */
   let to_fmt_name = name => {
     let idx_of_spc = String.index(name, ' ');
