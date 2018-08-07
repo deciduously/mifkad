@@ -32,16 +32,21 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
         
         first_name ++ " " ++ last_name;
       };
+
+      let expected_extended = kid => kid.schedule.expected == "extended";
+      let button = c =>
+        expected_extended(kid) ?
+      <button className=button_class onClick=c>
+          (ReasonReact.string(to_disp_name(kid.name) ++ " - " ++ button_class))
+    </button> :
+    <div>
+      <button className=button_class onClick=c>
+          (ReasonReact.string(to_disp_name(kid.name) ++ " - " ++ button_class))
+      </button>
+      <span>(ReasonReact.string("extended?"))</span>
+    </div>;
       
-      core ?
-      <button className=button_class onClick=click>
-        (
-          ReasonReact.string(
-            to_disp_name(kid.name) ++ " - " ++ button_class,
-          )
-        )
-    </button>
-    : <div className=button_class>(ReasonReact.string(to_disp_name(kid.name) ++ " - " ++ button_class))</div>;
+      core ? button(click) : button((_event => ()));
     },
   };
 };
