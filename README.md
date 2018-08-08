@@ -15,7 +15,7 @@ So, of course, I hopped ship to something else new and niche.  Let's see how thi
 
 * `yarn start` - compile Reason files to JS and watch for changes
 * `yarn webpack` - Bundle the JS for serving and watch for changes
-* `cargo watch -x run` - Build and run the server, watching for changes.
+* `cargo watch -x test -x run` - Build and run the server, watching for changes and running the tests before starting back up.
 
 Then open a browser to `localhost:8080`, pick a day, and log attendance until the cows home.
 

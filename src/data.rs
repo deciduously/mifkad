@@ -118,7 +118,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_open_excel() {
-        scrape_enrollment("all").unwrap();
-        assert_eq!("write", "me")
+        let school = scrape_enrollment("mon").unwrap();
+        assert!(school.classrooms.len() > 0)
     }
 }
