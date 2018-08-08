@@ -68,13 +68,23 @@ let get_extended_kids = school =>
 
 let add_extended_room = (classroom, school) => {
   /* dont make it last_room - actually scan for the match here - if you dont find one, make a new room */
-  let last_room = Array.get(school.classrooms, Array.length(school.classrooms));
-  if (classroom.letter == last_room.letter) {
-    /* Duplicate room - just append our kids onto the match */
-    Array.append(classroom.kids, last_room.kids);
+  let added = false;
+  let ret = {
+    ...school,
+    classrooms: Array.map(r =>
+                          /* if we already have a class with that letter, append the kids to it */
+                          if (r.letter == classroom.letter) {
+                            {...r, kids: Array.append(r.kids, classroom.kids)};
+                          } else {
+                            r;
+                          },
+                          school.classrooms)
+  };
+  if (! added) {
+    /* append to end as new class */
+    {...ret, classrooms: Array.append(school.classrooms, Array.make(1, classroom))};
   } else {
-    /* New room */
-    Array.append(Array.make(1, classroom), school.classrooms);
+    ret;
   };
 };
 
@@ -83,11 +93,8 @@ let get_extended_rooms = school => {
   let s = get_extended_kids(school);
   let ret = {
     ...school,
-    classrooms: Array.make(1, Array.get(s, 0))
+    classrooms: Array.map(r => add_extended_room(r, s), school.classrooms)
   } /* First entry of array*/;
-  /* Now we iterate through the rest */
-  Array.map(r => add_extended_room(r, ret), s.classrooms);
-  ret
 };
 
 let toggle = (school, kid) => {
