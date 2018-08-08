@@ -9,7 +9,7 @@ use std::str::FromStr;
 
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
-pub fn scrape_enrollment(day: &str) -> Result<School> {
+pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
     lazy_static! {
         // Define patterns to match
         static ref KID_RE: Regex =
@@ -25,7 +25,7 @@ pub fn scrape_enrollment(day: &str) -> Result<School> {
 
     // Use calamind to read in the input sheet
     // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
-    let mut excel: Xlsx<_> = open_workbook("sample/sample_enroll_all_detail_week.xlsx").unwrap();
+    let mut excel: Xlsx<_> = open_workbook(file_str).unwrap();
 
     // Try to get "Sheet1" as `r` - it should always exist
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
@@ -118,7 +118,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_open_excel() {
-        let school = scrape_enrollment("mon").unwrap();
+        let school = scrape_enrollment("mon", "sample/current.xlsx").unwrap();
         assert!(school.classrooms.len() > 0)
     }
 }

@@ -19,6 +19,6 @@ So, of course, I hopped ship to something else new and niche.  Let's see how thi
 
 Then open a browser to `localhost:8080`, pick a day, and log attendance until the cows home.
 
-It expects an input file under `sample/sample_enroll_all_detail_week.xlsx`.  I have not included the sample input in the repo.  Someday I'll type up the expected format but as its an auto-generated internal report iwthin our organization and this is an internal tool, no users of this software will ever need to know the exact format.  We just request it from the database and pop it in :).  If you're *super* bored, the parsing logic lives in [`src/data.rs`](https://github.com/deciduously/mifkad/blob/master/src/data.rs) and you could totes reverse engineer it.  But, like, get a better hobby.  Yikes.
+It expects an input file under `sample/current.xlsx`. There's a sample in there with fudged data.  It intentionally has mismatched headers and things - that's how they come outta the big box, except for all the extraneous info I've removed.   Redacted, if I want to sound fancy.  And I do.  Rows or data in rows that aren't what I care about don't matter.
 
 Obviously, this is a temporary requirement - this file location will be submitted by either command line flag, env variable, or via the web frontend.

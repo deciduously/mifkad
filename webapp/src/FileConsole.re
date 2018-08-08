@@ -7,7 +7,7 @@ let component = ReasonReact.statelessComponent("FileConsole");
 
 let make = (~onClick, _children) => {
   ...component,
-  render: self =>
+  render: _self =>
     <div id="fileconsole">
       <button id="console" onClick>
         (ReasonReact.string("Pick a different day"))
