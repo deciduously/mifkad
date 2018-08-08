@@ -46,9 +46,7 @@ let get_extended_letter = letter =>
   };
 
 let get_extended_kids = school =>
-  /* Returns a school with only the Extended Day kids, filtered into the proper classrooms */
-  /* We know what room we're in from `r` - use that to properly funnel */
-  /* How do we swuash like classrooms together? */
+  /* Returns a school with only the Extended Day kids */
   {
     ...school,
     classrooms:
@@ -68,9 +66,29 @@ let get_extended_kids = school =>
       ),
   };
 
-let get_extended_rooms = school =>
-  /* TODO Returns a school of Extended Day kids flattened into the proper classrooms */
-  get_extended_kids(school);
+let add_extended_room = (classroom, school) => {
+  /* dont make it last_room - actually scan for the match here - if you dont find one, make a new room */
+  let last_room = Array.get(school.classrooms, Array.length(school.classrooms));
+  if (classroom.letter == last_room.letter) {
+    /* Duplicate room - just append our kids onto the match */
+    Array.append(classroom.kids, last_room.kids);
+  } else {
+    /* New room */
+    Array.append(Array.make(1, classroom), school.classrooms);
+  };
+};
+
+let get_extended_rooms = school => {
+  /* Flattens extended_kids output into the proper classrooms */
+  let s = get_extended_kids(school);
+  let ret = {
+    ...school,
+    classrooms: Array.make(1, Array.get(s, 0))
+  } /* First entry of array*/;
+  /* Now we iterate through the rest */
+  Array.map(r => add_extended_room(r, ret), s.classrooms);
+  ret
+};
 
 let toggle = (school, kid) => {
   /* Returns a new school with the specified kid toggled */
