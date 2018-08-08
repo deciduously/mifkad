@@ -1,11 +1,14 @@
 /* Kid.re renders a single kid */
 
-open Types /* Component template declaration.
-   Needs to be **after** state and action declarations!
-   This is a stateless component - all it will do it pass the message back up to the App root */;
+open Types;
 
-let component = ReasonReact.statelessComponent("Kid") /* greeting and children are props. `children` isn't used, therefore ignored.
-   We ignore it by prepending it with an underscore */;
+type category =
+  /* A Kid is either in the Core or Extended roster, and if in core, expected in extended or not*/
+  | NoButton
+  | ButtonCore
+  | ButtonExtended;
+
+let component = ReasonReact.statelessComponent("Kid");
 
 let make = (~kid: kid, ~onClick, ~core, _children) => {
   let click = _event => onClick(kid) /* When the button is clicked, pass the kid on up with the callback */;
@@ -30,23 +33,16 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
         |> String.lowercase
         |> String.capitalize;
         
-        first_name ++ " " ++ last_name;
+        first_name ++ " " ++ last_name ++ " - " ++ button_class;
       };
 
-      let expected_extended = kid => kid.schedule.expected == "extended";
-      let button = c =>
-        expected_extended(kid) ?
-      <button className=button_class onClick=c>
-          (ReasonReact.string(to_disp_name(kid.name) ++ " - " ++ button_class))
-    </button> :
-    <div>
-      <button className=button_class onClick=c>
-          (ReasonReact.string(to_disp_name(kid.name) ++ " - " ++ button_class))
-      </button>
-      <span>(ReasonReact.string("extended?"))</span>
-    </div>;
+      let category = kid => core ?
+        (kid.schedule.expected == "Extended" ? ButtonExtended : ButtonCore) : NoButton;
       
-      core ? button(click) : button((_event => ()));
+    switch (category(kid)) {
+    | NoButton => <div className=button_class>(ReasonReact.string(to_disp_name(kid.name)))</div>
+    | ButtonExtended => <button className=button_class onClick=click>(ReasonReact.string(to_disp_name(kid.name)))</button>
+    | ButtonCore => <div><button className=button_class onClick=click>(ReasonReact.string(to_disp_name(kid.name)))</button><span>(ReasonReact.string(" add to extended?"))</span></div>};
     },
   };
 };

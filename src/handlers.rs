@@ -9,5 +9,5 @@ pub fn index(_req: HttpRequest) -> Result<NamedFile> {
 }
 
 pub fn school(day: Path<String>) -> impl Responder {
-    Json(scrape_enrollment(&day, "sample/sample_enroll_all_detail_week").unwrap())
+    Json(scrape_enrollment(&day, "sample/sample_enroll_all_detail_week.xlsx").unwrap())
 }
