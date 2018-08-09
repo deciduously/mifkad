@@ -66,28 +66,29 @@ let get_extended_kids = school =>
   };
 
 let add_extended_room = (school, classroom) => {
-  let added = false;
+  let added = ref(false);
   let ret = {
     ...school,
     classrooms:
       Array.fold_left(
     (rooms, oldr) =>
       if (Array.length(rooms) == 0) {
-         /* The first time through, just add the first room as-is */ Array.append(rooms, Array.make(1, oldr))
+         /* The first time through, just add the first room as-is */ Array.append(rooms, Array.make(1, classroom))
        } else {
          /* Otherwise, check if we're a duplicate and then either pop it in or add the new kids to the existing entry */
-         let last_room = Array.get(rooms, Array.length(rooms) - 1)/* BEN you dont want to look at the last one, you want to look at ALL of them and see iftheres a match */;
-         oldr.letter == last_room.letter
-          ? /* BEN you don't want to append here, jut mutate the existing
-           but that makes your branch types mismatch.  I think you set a flag and deal with it after the fold - do nothing inside here
-           also, toggle Added - that might be a large part of your problem */
-           Array.append(rooms, Array.make(1, {...last_room, kids: Array.append(last_room.kids, Array.append(oldr.kids, last_room.kids))}))
-          : Array.append(rooms, Array.make(1, oldr));
-       },
+        if (classroom.letter == oldr.letter) {
+          added := true;
+          /* I still think this is the problem - you dont want to add a new room to the final coll here, you want to mutate an existing room */
+          Array.append(rooms, Array.make(1, {...oldr, kids: Array.append(oldr.kids, Array.append(classroom.kids, oldr.kids))}));
+        } else {
+          Array.append(rooms, Array.make(1, classroom));
+        }
+      },
     [||],
     school.classrooms,
   )};
-  if (! added)/* Heres part of the problem - you never flip this marker*/ {
+  
+  if (! added^) {
     {
     /* append to end as new class */
     ...ret,
