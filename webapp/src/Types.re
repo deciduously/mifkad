@@ -70,35 +70,40 @@ let add_extended_room = (school, classroom) => {
   let ret = {
     ...school,
     classrooms:
-      Array.map(
-        r =>
-          /* if we already have a class with that letter, append the kids to it - YOU NEED TO DROP ONE HERE SOMEHOW? THis also may be a fold_left into a new array.  Go to bed.*/
-          if (r.letter == classroom.letter) {
-            {...r, kids: Array.append(r.kids, classroom.kids)};
-          } else {
-            r;
-          },
-        school.classrooms,
-      ),
-  };
+      Array.fold_left(
+    (rooms, oldr) =>
+      if (Array.length(rooms) == 0) {
+         /* The first time through, just add the first room as-is */ Array.append(rooms, Array.make(1, oldr))
+       } else {
+         /* Otherwise, check if we're a duplicate and then either pop it in or add the new kids to the existing entry */
+         let last_room = Array.get(rooms, Array.length(rooms) - 1)/* BEN you dont want to look at the last one, you want to look at ALL of them and see iftheres a match */;
+         oldr.letter == last_room.letter
+          ? /* BEN you don't want to append here, jut mutate the existing
+           but that makes your branch types mismatch.  I think you set a flag and deal with it after the fold - do nothing inside here */
+          Array.append(rooms, Array.make(1, {...last_room, kids: Array.append(last_room.kids, Array.append(oldr.kids, last_room.kids))}))
+          : Array.append(rooms, Array.make(1, oldr));
+       },
+    [||],
+    school.classrooms,
+  )};
   if (! added) {
     {
-      /* append to end as new class */
-      ...ret,
-      classrooms: Array.append(school.classrooms, Array.make(1, classroom)),
-    };
+    /* append to end as new class */
+    ...ret,
+    classrooms: Array.append(school.classrooms, Array.make(1, classroom)),
+  };
   } else {
     ret;
   };
 };
 
 let get_extended_rooms = school => {
-  /* Returns a `school` of the  */
+  /* Returns a `school` of the extended kids */
   let s = get_extended_kids(school);
   Array.fold_left(
     add_extended_room,
     {...school, classrooms: [||]},
-    s.classrooms /* This is straight incorect */,
+    s.classrooms,
   );
 };
 
@@ -107,27 +112,27 @@ let toggle = (school, kid) => {
   ...school,
   classrooms:
     Array.map(
-      room => {
-        ...room,
-        kids:
-          Array.map(
-            k =>
-              if (kid == k) {
-                {
-                  ...kid,
-                  schedule: {
-                    ...kid.schedule,
-                    actual: ! kid.schedule.actual,
-                  },
-                };
-              } else {
-                k;
-              },
-            room.kids,
-          ),
+  room => {
+      ...room,
+      kids:
+        Array.map(
+    k =>
+      if (kid == k) {
+        {
+        ...kid,
+        schedule: {
+          ...kid.schedule,
+          actual: ! kid.schedule.actual,
+        },
+      };
+      } else {
+        k;
       },
-      school.classrooms,
-    ),
+    room.kids,
+  ),
+    },
+  school.classrooms,
+),
 };
 
 module Report = {
