@@ -1,11 +1,10 @@
-/* Types.re holds types used throughout */
+/* Types.re holds types and transformations used throughout the UI components */
 
 /* payload types to match types in /src/schema.rs */
 
 /* type expected = Core | Extended | Unscheduled; */
 
 /* Type declarations */
-/* cool - these are completely optimized away in the compiled js */
 type day = {
   weekday: string,
   expected: string,
@@ -66,35 +65,41 @@ let get_extended_kids = school =>
       ),
   };
 
-let add_extended_room = (classroom, school) => {
-  /* dont make it last_room - actually scan for the match here - if you dont find one, make a new room */
+let add_extended_room = (school, classroom) => {
   let added = false;
   let ret = {
     ...school,
-    classrooms: Array.map(r =>
-                          /* if we already have a class with that letter, append the kids to it */
-                          if (r.letter == classroom.letter) {
-                            {...r, kids: Array.append(r.kids, classroom.kids)};
-                          } else {
-                            r;
-                          },
-                          school.classrooms)
+    classrooms:
+      Array.map(
+        r =>
+          /* if we already have a class with that letter, append the kids to it - YOU NEED TO DROP ONE HERE SOMEHOW? THis also may be a fold_left into a new array.  Go to bed.*/
+          if (r.letter == classroom.letter) {
+            {...r, kids: Array.append(r.kids, classroom.kids)};
+          } else {
+            r;
+          },
+        school.classrooms,
+      ),
   };
   if (! added) {
-    /* append to end as new class */
-    {...ret, classrooms: Array.append(school.classrooms, Array.make(1, classroom))};
+    {
+      /* append to end as new class */
+      ...ret,
+      classrooms: Array.append(school.classrooms, Array.make(1, classroom)),
+    };
   } else {
     ret;
   };
 };
 
 let get_extended_rooms = school => {
-  /* Flattens extended_kids output into the proper classrooms */
+  /* Returns a `school` of the  */
   let s = get_extended_kids(school);
-  let ret = {
-    ...school,
-    classrooms: Array.map(r => add_extended_room(r, s), school.classrooms)
-  } /* First entry of array*/;
+  Array.fold_left(
+    add_extended_room,
+    {...school, classrooms: [||]},
+    s.classrooms /* This is straight incorect */,
+  );
 };
 
 let toggle = (school, kid) => {

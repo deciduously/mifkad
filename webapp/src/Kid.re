@@ -51,16 +51,16 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
         <div className=button_class>
           (ReasonReact.string(to_disp_name(kid.name)))
         </div>
-        | ButtonExtended =>
+      | ButtonExtended =>
         <button className=button_class onClick=click>
           (ReasonReact.string(to_disp_name(kid.name)))
         </button>
-        | ButtonCore =>
+      | ButtonCore =>
         <div>
           <button className=button_class onClick=click>
             (ReasonReact.string(to_disp_name(kid.name)))
           </button>
-          <input type_="checkbox" name="addext"></input>
+          <input type_="checkbox" name="addext" />
         </div>
       };
     },
