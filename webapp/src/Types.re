@@ -79,14 +79,15 @@ let add_extended_room = (school, classroom) => {
          let last_room = Array.get(rooms, Array.length(rooms) - 1)/* BEN you dont want to look at the last one, you want to look at ALL of them and see iftheres a match */;
          oldr.letter == last_room.letter
           ? /* BEN you don't want to append here, jut mutate the existing
-           but that makes your branch types mismatch.  I think you set a flag and deal with it after the fold - do nothing inside here */
-          Array.append(rooms, Array.make(1, {...last_room, kids: Array.append(last_room.kids, Array.append(oldr.kids, last_room.kids))}))
+           but that makes your branch types mismatch.  I think you set a flag and deal with it after the fold - do nothing inside here
+           also, toggle Added - that might be a large part of your problem */
+           Array.append(rooms, Array.make(1, {...last_room, kids: Array.append(last_room.kids, Array.append(oldr.kids, last_room.kids))}))
           : Array.append(rooms, Array.make(1, oldr));
        },
     [||],
     school.classrooms,
   )};
-  if (! added) {
+  if (! added)/* Heres part of the problem - you never flip this marker*/ {
     {
     /* append to end as new class */
     ...ret,
