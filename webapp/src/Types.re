@@ -19,7 +19,7 @@ type kid = {
 type classroom = {
   letter: string,
   capacity: int,
-  kids: array(kid),
+  kids: ref(array(kid)),
 };
 
 type school = {
@@ -54,34 +54,44 @@ let get_extended_kids = school =>
           ...r,
           letter: get_extended_letter(r.letter),
           kids:
-            Array.of_list(
+            ref(Array.of_list(
               List.filter(
                 k => k.schedule.expected == "Extended",
-                Array.to_list(r.kids),
+                Array.to_list(r.kids^),
               ),
-            ),
+            )),
         },
         school.classrooms,
       ),
   };
 
 let add_extended_room = (school, classroom) => {
+  /* This is our folding fn from get_extended_rooms below.
+     It should take a room and a school and either add the new room
+     or if a room already exists with the same letter, just add those kids */
   let added = ref(false);
   let ret = {
     ...school,
     classrooms:
       Array.fold_left(
-    (rooms, oldr) =>
-      if (Array.length(rooms) == 0) {
-         /* The first time through, just add the first room as-is */ Array.append(rooms, Array.make(1, classroom))
+    (target, oldr) =>
+      if (Array.length(target) == 0) {
+         /* The first time through, just add the first room as-is */ Array.append(target, Array.make(1, classroom))
        } else {
          /* Otherwise, check if we're a duplicate and then either pop it in or add the new kids to the existing entry */
-        if (classroom.letter == oldr.letter) {
+        let already_included = Array.map(r => r.letter, school.classrooms);
+        let found = ref(false)/* Once this works, see if we can make this all a little more functional */;
+        Array.iter(/* Check through every room we've already added */ l => 
+                   if (classroom.letter == l) {
+          found := true;
+        },
+        already_included);
+        if (found^) {
           added := true;
-          /* I still think this is the problem - you dont want to add a new room to the final coll here, you want to mutate an existing room */
-          Array.append(rooms, Array.make(1, {...oldr, kids: Array.append(oldr.kids, Array.append(classroom.kids, oldr.kids))}));
+          oldr.kids := Array.append(oldr.kids^, Array.append(classroom.kids^, oldr.kids^));
+          Array.append(target, [||])/* Nothing to add, we just merged the kids to an existing record */;
         } else {
-          Array.append(rooms, Array.make(1, classroom));
+          Array.append(target, [||])/* Can this match arm replace the added stuff below?*/;
         }
       },
     [||],
@@ -117,7 +127,7 @@ let toggle = (school, kid) => {
   room => {
       ...room,
       kids:
-        Array.map(
+        ref(Array.map(
     k =>
       if (kid == k) {
         {
@@ -130,8 +140,8 @@ let toggle = (school, kid) => {
       } else {
         k;
       },
-    room.kids,
-  ),
+    room.kids^,
+  )),
     },
   school.classrooms,
 ),
@@ -161,7 +171,7 @@ module Report = {
 
   let classroom = classroom : string => {
     let kidlist =
-      Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids);
+      Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
     "Room "
     ++ classroom.letter
     ++ ": "  /* Check if empty, and if it's not empty, trim off the trialing comma */

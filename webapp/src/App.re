@@ -33,7 +33,7 @@ module Decode = {
     Json.Decode.{
       letter: json |> field("letter", string),
       capacity: json |> field("capacity", int),
-      kids: json |> field("kids", array(kid)) |> Array.map(_, kid => kid),
+      kids: ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
     };
 
   let school = json : school =>

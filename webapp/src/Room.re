@@ -14,6 +14,6 @@ let make = (~room: classroom, ~onClick, ~core, _children) => {
           )
         )
       </h4>
-      <KidList kids=room.kids onClick core />
+      <KidList kids=room.kids^ onClick core />
     </div>,
 };
