@@ -70,30 +70,29 @@ let add_extended_room = (school, classroom) => {
      It should take a room and a school and either add the new room
      or if a room already exists with the same letter, just add those kids */
   let target = ref(school.classrooms);
-  Array.iter(r => /* Iterate through the classrooms to decide how to add to the target - NOTE r is unused?! Mayb this isnt a big out iter all all - JUSt the inner if */
-             if (Array.length(target^) == 0) {
-               target := Array.append(target^, Array.make(1, classroom))
-             } else {
-               let already_included = Array.map(oldr => oldr.letter, school.classrooms);
-               let found = ref(false);
-               let idx = ref(0)/* This will only be read later if found is toggled to true*/;
-               Array.iteri((i, l) =>
-                           if (classroom.letter == l) {
-                             found := true/* use iteri!!!!*/;
-                             idx := i;
-                           },
-                           already_included);
-               if (found^) {
-                 /* We've already seen this letter - mash the new kid list into the matching existing kid list */
-                 let old_classroom = Array.get(school.classrooms, idx^);
-                 let new_classroom = {...classroom, kids: ref(Array.append(old_classroom.kids^, classroom.kids^))};
-                 Array.set(target^, idx^, new_classroom);
-               } else {
-                 /* This is a new extended day room - add it as-is */
-                 target := Array.append(target^, Array.make(1, classroom));
-               };
-             }
-             ,school.classrooms);
+  
+  if (Array.length(target^) == 0) {
+    target := Array.append(target^, Array.make(1, classroom))
+  } else {
+    let already_included = Array.map(oldr => oldr.letter, school.classrooms);
+    let found = ref(false);
+    let idx = ref(0)/* This will only be read later if found is toggled to true*/;
+    Array.iteri((i, l) =>
+                if (classroom.letter == l) {
+                  found := true/* use iteri!!!!*/;
+                  idx := i;
+                },
+                already_included);
+    if (found^) {
+      /* We've already seen this letter - mash the new kid list into the matching existing kid list */
+      let old_classroom = Array.get(school.classrooms, idx^);
+      let new_classroom = {...classroom, kids: ref(Array.append(old_classroom.kids^, classroom.kids^))};
+      Array.set(target^, idx^, new_classroom);
+    } else {
+      /* This is a new extended day room - add it as-is */
+      target := Array.append(target^, Array.make(1, classroom));
+    };
+  };
     
   {...school, classrooms: target^ };
 };
