@@ -1,17 +1,26 @@
 /* FileConsole.re contains the buttons for roster uploading */
 
+open Types;
+
 type action =
   | Click /* this needs to go after state and action */;
 
 let component = ReasonReact.statelessComponent("FileConsole");
 
-let make = (~onClick, _children) => {
+let make = (~school, ~dayChangeClick, _children) => {
   ...component,
-  render: _self =>
+  render: _self => {
+    let dload =
+      "data:application/octet-stream;charset=utf8;base64,"
+      ++ btoa(Report.school(school));
     <div id="fileconsole">
-      <button id="console" onClick>
+      <button id="console" onClick=dayChangeClick>
         {ReasonReact.string("Pick a different day")}
       </button>
-      <FileUpload id="roster" filetype="csv" />
-    </div>,
+      <button onClick={_event => alert(Report.school(school))}>
+        {ReasonReact.string("Preview")}
+      </button>
+      <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
+    </div>;
+  },
 };

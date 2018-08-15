@@ -119,10 +119,7 @@ let make = _children => {
         <h1> {ReasonReact.string("Mifkad")} </h1>
         <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
         <hr />
-        <FileConsole onClick=(_event => self.send(ResetDay)) />
-        <button onClick=(_event => alert(Report.school(school)))>
-          {ReasonReact.string("report")}
-        </button>
+        <FileConsole school dayChangeClick=(_event => self.send(ResetDay)) />
         <hr />
         <Roster
           school

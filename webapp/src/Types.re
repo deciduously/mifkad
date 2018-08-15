@@ -145,3 +145,4 @@ let toggle = (school, kid) => {
 };
 
 [@bs.val] external alert: string => unit = "alert";
+[@bs.val] external btoa: string => string = "btoa";
