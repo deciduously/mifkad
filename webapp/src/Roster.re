@@ -8,16 +8,16 @@ let make = (~school, ~onClick, ~core, _children) => {
   render: _self =>
     <div className="roster">
       <ul className="classList">
-        (
+        {
           Array.map(
             classroom =>
-              <li key=classroom.letter className="room">
+              <li key={classroom.letter} className="room">
                 <Room room=classroom onClick core />
               </li>,
             school.classrooms,
           )
           |> ReasonReact.array
-        )
+        }
       </ul>
     </div>,
 };

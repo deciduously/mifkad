@@ -49,16 +49,16 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
       switch (category(kid)) {
       | NoButton =>
         <div className=button_class>
-          (ReasonReact.string(to_disp_name(kid.name)))
+          {ReasonReact.string(to_disp_name(kid.name))}
         </div>
       | ButtonExtended =>
         <button className=button_class onClick=click>
-          (ReasonReact.string(to_disp_name(kid.name)))
+          {ReasonReact.string(to_disp_name(kid.name))}
         </button>
       | ButtonCore =>
         <div>
           <button className=button_class onClick=click>
-            (ReasonReact.string(to_disp_name(kid.name)))
+            {ReasonReact.string(to_disp_name(kid.name))}
           </button>
           <input type_="checkbox" name="addext" />
         </div>

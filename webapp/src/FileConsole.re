@@ -10,7 +10,7 @@ let make = (~onClick, _children) => {
   render: _self =>
     <div id="fileconsole">
       <button id="console" onClick>
-        (ReasonReact.string("Pick a different day"))
+        {ReasonReact.string("Pick a different day")}
       </button>
       <FileUpload id="roster" filetype="csv" />
     </div>,

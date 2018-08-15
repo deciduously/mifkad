@@ -6,8 +6,8 @@ let make = (~id, ~filetype, _children) => {
   render: self =>
     <input
       id
-      _type="file"
+      type_="file"
       accept=filetype
-      onChange=(_event => self.send(Js.log("FileUpload click")))
+      onChange={_event => self.send(Js.log("FileUpload click"))}
     />,
 };

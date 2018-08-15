@@ -7,13 +7,13 @@ let make = (~kids: array(kid), ~onClick, ~core, _children) => {
   ...component,
   render: _self =>
     <ul className="kidlist">
-      (
+      {
         Array.map(
           k =>
-            <li key=k.name className="kid"> <Kid kid=k onClick core /> </li>,
+            <li key={k.name} className="kid"> <Kid kid=k onClick core /> </li>,
           kids,
         )
         |> ReasonReact.array
-      )
+      }
     </ul>,
 };

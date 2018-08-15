@@ -16,27 +16,28 @@ type action =
   | Toggle(school, kid);
 
 module Decode = {
-  let day = json : day =>
+  let day = json: day =>
     Json.Decode.{
       weekday: json |> field("weekday", string),
       expected: json |> field("expected", string),
       actual: json |> field("actual", bool),
     };
 
-  let kid = json : kid =>
+  let kid = json: kid =>
     Json.Decode.{
       name: json |> field("name", string),
       schedule: json |> field("schedule", day),
     };
 
-  let classroom = json : classroom =>
+  let classroom = json: classroom =>
     Json.Decode.{
       letter: json |> field("letter", string),
       capacity: json |> field("capacity", int),
-      kids: ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
+      kids:
+        ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
     };
 
-  let school = json : school =>
+  let school = json: school =>
     Json.Decode.{
       weekday: json |> field("weekday", string),
       classrooms:
@@ -84,43 +85,43 @@ let make = _children => {
     switch (self.state) {
     | ChooseDay =>
       <div>
-        <h2> (ReasonReact.string("Please select day:")) </h2>
+        <h2> {ReasonReact.string("Please select day:")} </h2>
         <br />
         <div>
           <button onClick=(_event => self.send(GetEnrollment("mon")))>
-            (ReasonReact.string("Monday"))
+            {ReasonReact.string("Monday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("tue")))>
-            (ReasonReact.string("Tuesday"))
+            {ReasonReact.string("Tuesday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("wed")))>
-            (ReasonReact.string("Wednesday"))
+            {ReasonReact.string("Wednesday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("thu")))>
-            (ReasonReact.string("Thursday"))
+            {ReasonReact.string("Thursday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("fri")))>
-            (ReasonReact.string("Friday"))
+            {ReasonReact.string("Friday")}
           </button>
         </div>
       </div>
     | Error =>
       <div>
-        (
+        {
           ReasonReact.string(
             "An error occured connecting to the backend.  Check the server log.",
           )
-        )
+        }
       </div>
-    | Loading => <div> (ReasonReact.string("Loading...")) </div>
+    | Loading => <div> {ReasonReact.string("Loading...")} </div>
     | Loaded(school) =>
       <div id="app">
-        <h1> (ReasonReact.string("Mifkad")) </h1>
-        <h2> (ReasonReact.string("Attendance - " ++ school.weekday)) </h2>
+        <h1> {ReasonReact.string("Mifkad")} </h1>
+        <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
         <hr />
         <FileConsole onClick=(_event => self.send(ResetDay)) />
         <button onClick=(_event => alert(Report.school(school)))>
-          (ReasonReact.string("report"))
+          {ReasonReact.string("report")}
         </button>
         <hr />
         <Roster
@@ -130,15 +131,15 @@ let make = _children => {
         /> /* true means it'll have toggleable buttons */
         <hr />
         <Roster
-          school=(get_extended_rooms(school))
+          school={get_extended_rooms(school)}
           onClick=(_event => ())
           core=false
         />
         <hr />
         <footer>
-          (ReasonReact.string("\xA9 2018 deciduously - "))
+          {ReasonReact.string("\xA9 2018 deciduously - ")}
           <a href="https://github.com/deciduously/mifkad">
-            (ReasonReact.string("source"))
+            {ReasonReact.string("source")}
           </a>
         </footer>
       </div>
