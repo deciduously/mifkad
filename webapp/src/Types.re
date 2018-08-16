@@ -19,6 +19,7 @@ type kid = {
 type classroom = {
   letter: string,
   capacity: int,
+  collected: ref(bool),
   kids: ref(array(kid)),
 };
 

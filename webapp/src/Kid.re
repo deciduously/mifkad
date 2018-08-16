@@ -13,7 +13,6 @@ let component = ReasonReact.statelessComponent("Kid");
 let make = (~kid: kid, ~onClick, ~core, _children) => {
   let click = _event => onClick(kid) /* When the button is clicked, pass the kid on up with the callback */;
   {
-    /* spread the other default fields of component here and override a few */
     ...component,
     render: _self => {
       let button_class = kid.schedule.actual ? "In" : "Out";
@@ -44,7 +43,7 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
       let category = kid =>
         core ?
           kid.schedule.expected == "Extended" ? ButtonExtended : ButtonCore :
-          NoButton;
+          NoButton /* Ben - nested ternaries are hard to read */;
 
       switch (category(kid)) {
       | NoButton =>

@@ -33,6 +33,7 @@ module Decode = {
     Json.Decode.{
       letter: json |> field("letter", string),
       capacity: json |> field("capacity", int),
+      collected: ref(false),
       kids:
         ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
     };
@@ -47,10 +48,10 @@ module Decode = {
     };
 };
 
-let component = ReasonReact.reducerComponent("App") /* last one must be children */ /* underscores indicate unused, like in Rust */;
+let component = ReasonReact.reducerComponent("App");
 
 let make = _children => {
-  ...component /* spread the template's other defaults into here - otherwise it'd be in a double [|[|<child>|]|] */,
+  ...component,
   initialState: _state => ChooseDay,
   reducer: (action, _state) =>
     switch (action) {
@@ -78,6 +79,8 @@ let make = _children => {
     | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
+    | RoomCollected(school, room) =>
+      ReasonReact.Update(Loaded(toggle_collected(school, room)))
     | Toggle(school, kid) =>
       ReasonReact.Update(Loaded(toggle(school, kid)))
     } /* We don't need to do this, user chooses day first */ /* didMount: self => self.send(GetEnrollment("tue")), */,
@@ -123,13 +126,17 @@ let make = _children => {
         <hr />
         <Roster
           school
-          onClick=(event => self.send(Toggle(school, event)))
+          kidClicked=(event => self.send(Toggle(school, event)))
+          collectedClicked=(event => self.send(RoomCollected(school, event)))
           core=true
         /> /* true means it'll have toggleable buttons */
         <hr />
         <Roster
           school={get_extended_rooms(school)}
-          onClick=(_event => ())
+          kidClicked=(_event => ())
+          collectedClicked=(
+            /* TODO this shouldnt even rnder the button */ _event => ()
+          )
           core=false
         />
         <hr />
