@@ -13,6 +13,7 @@ type action =
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
   | ResetDay /* Toggle carries a kid payload, not just a name? */
+  | RoomCollected(school, classroom)
   | Toggle(school, kid);
 
 module Decode = {
@@ -33,7 +34,7 @@ module Decode = {
     Json.Decode.{
       letter: json |> field("letter", string),
       capacity: json |> field("capacity", int),
-      collected: ref(false),
+      collected: false,
       kids:
         ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
     };
@@ -83,7 +84,7 @@ let make = _children => {
       ReasonReact.Update(Loaded(toggle_collected(school, room)))
     | Toggle(school, kid) =>
       ReasonReact.Update(Loaded(toggle(school, kid)))
-    } /* We don't need to do this, user chooses day first */ /* didMount: self => self.send(GetEnrollment("tue")), */,
+    },
   render: self =>
     switch (self.state) {
     | ChooseDay =>

@@ -19,7 +19,7 @@ type kid = {
 type classroom = {
   letter: string,
   capacity: int,
-  collected: ref(bool),
+  collected: bool,
   kids: ref(array(kid)),
 };
 
@@ -141,6 +141,21 @@ let toggle = (school, kid) => {
             ),
           ),
       },
+      school.classrooms,
+    ),
+};
+
+let toggle_collected = (school, classroom) => {
+  /* Returns a new school with the specified classroom toggled */
+  ...school,
+  classrooms:
+    Array.map(
+      room =>
+        if (classroom == room) {
+          {...room, collected: !room.collected};
+        } else {
+          room;
+        },
       school.classrooms,
     ),
 };

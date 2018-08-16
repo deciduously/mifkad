@@ -5,20 +5,28 @@ let component = ReasonReact.statelessComponent("Room");
 
 let make =
     (~room: classroom, ~kidClicked, ~collectedClicked, ~core, _children) => {
-  /*let click = YOU'RE HERE*/
-  ...component,
-  render: _self =>
-    <div className="roomContent">
-      <h4 className="roomLetter">
+  let click = _event => collectedClicked(room);
+  {
+    ...component,
+    render: _self =>
+      <div className="roomContent">
+        <h4 className="roomLetter">
+          {
+            ReasonReact.string(
+              room.letter ++ ": max " ++ string_of_int(room.capacity),
+            )
+          }
+        </h4>
         {
-          ReasonReact.string(
-            room.letter ++ ": max " ++ string_of_int(room.capacity),
-          )
+          core ?
+            <button onClick=click>
+              {
+                ReasonReact.string(room.collected ? "Ready" : "Need to finish")
+              }
+            </button> :
+            <span />
         }
-      </h4>
-      <button onClick=collectedClicked>
-        {ReasonReact.string(room.collected^ ? "Ready" : "Need to finish")}
-      </button>
-      <KidList kids=room.kids^ onClick=kidClicked core />
-    </div>,
+        <KidList kids=room.kids^ onClick=kidClicked core />
+      </div>,
+  };
 };

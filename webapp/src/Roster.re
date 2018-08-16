@@ -3,7 +3,7 @@ open Types;
 
 let component = ReasonReact.statelessComponent("Roster");
 
-let make = (~school, ~kidClicked, collectedClicked, ~core, _children) => {
+let make = (~school, ~kidClicked, ~collectedClicked, ~core, _children) => {
   ...component,
   render: _self =>
     <div className="roster">
