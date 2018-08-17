@@ -12,7 +12,6 @@ footer {
 }
 
 .kidlist {
-    display: inline-block;
 }
 
 .absentlist {
@@ -22,6 +21,7 @@ footer {
 
 .classlist {
     align-content: center;
+    display: inline-grid;
 }
 
 .capacity {
@@ -39,7 +39,7 @@ footer {
 
 .room {
     width: 33%;
-    display: inline-block;
+    display: inline-grid;
     vertical-align: top;
     position: relative;
 }
