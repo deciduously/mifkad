@@ -28,6 +28,14 @@ type school = {
   weekday: string,
 };
 
+let get_uncollected_rooms = school => {
+  /* Returns a strung detailing which rooms havent been marked complete */
+  let r_list =
+    List.filter(r => !r.collected, Array.to_list(school.classrooms));
+  "Double check the following rooms:\r\n"
+  ++ List.fold_left((s, r) => s ++ r.letter ++ " ", "", r_list);
+};
+
 let get_extended_letter = letter =>
   switch (letter) {
   | "A" => "AE"

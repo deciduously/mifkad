@@ -70,11 +70,13 @@ let ext_classroom = classroom: string => {
 
 let school = school: string => {
   let ext = get_extended_rooms(school);
-  Array.fold_left(
-    (acc, room) => acc ++ classroom(room),
-    "",
-    school.classrooms,
-  )
+  get_uncollected_rooms(school)
+  ++ "\r\n"
+  ++ Array.fold_left(
+       (acc, room) => acc ++ classroom(room),
+       "",
+       school.classrooms,
+     )
   ++ "\r\nExtended Day:\r\n"
   ++ Array.fold_left(
        (acc, room) => acc ++ ext_classroom(room),
