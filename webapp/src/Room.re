@@ -27,6 +27,32 @@ let make =
             <span />
         }
         <KidList kids=room.kids^ onClick=kidClicked core />
+        {
+          core ?
+            {
+              let absent =
+                Array.of_list(
+                  List.filter(
+                    k => !k.schedule.actual,
+                    Array.to_list(room.kids^),
+                  ),
+                );
+              <div>
+                <span> {ReasonReact.string("Absent:")} </span>
+                <ul>
+                  {
+                    Array.map(
+                      k =>
+                        <li key={k.name}> {ReasonReact.string(Report.to_fmt_name(k.name))} </li>,
+                      absent,
+                    )
+                    |> ReasonReact.array
+                  }
+                </ul>
+              </div>;
+            } :
+            <span />
+        }
       </div>,
   };
 };
