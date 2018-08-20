@@ -70,8 +70,12 @@ let ext_classroom = classroom: string => {
 
 let school = school: string => {
   let ext = get_extended_rooms(school);
-  get_uncollected_rooms(school)
-  ++ "\r\n"
+  let uncollected_rooms = get_uncollected_rooms(school);
+  let uncollected_str =
+    String.length(uncollected_rooms) >= 1 ?
+      "Double check the following rooms:\r\n" ++ uncollected_rooms ++ "\r\n" :
+      "";
+  uncollected_str
   ++ Array.fold_left(
        (acc, room) => acc ++ classroom(room),
        "",
