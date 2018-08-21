@@ -37,6 +37,10 @@ footer {
     background-color: red;
 }
 
+.pink_sheet {
+    background-color: pink;
+}
+
 .room {
     width: 33%;
     display: inline-grid;

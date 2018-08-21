@@ -4,7 +4,14 @@ open Types;
 let component = ReasonReact.statelessComponent("Room");
 
 let make =
-    (~room: classroom, ~kidClicked, ~collectedClicked, ~core, _children) => {
+    (
+      ~room: classroom,
+      ~kidClicked,
+      ~addextClicked,
+      ~collectedClicked,
+      ~core,
+      _children,
+    ) => {
   let click = _event => collectedClicked(room);
   {
     ...component,
@@ -26,7 +33,7 @@ let make =
             </button> :
             <span />
         }
-        <KidList kids=room.kids^ onClick=kidClicked core />
+        <KidList kids=room.kids^ kidClicked addextClicked core />
         {
           core ?
             {

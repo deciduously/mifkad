@@ -14,6 +14,7 @@ type action =
   | EnrollmentFailedToGet
   | ResetDay /* Toggle carries a kid payload, not just a name? */
   | RoomCollected(school, classroom, string)
+  | AddToExtended(school, kid, string)
   | ToggleExtendedConfig(school, string /* extended_config*/) /* Rigth now there are just two states, fall and summer. */
   | Toggle(school, kid, string);
 
@@ -85,10 +86,16 @@ let make = _children => {
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
     | RoomCollected(school, room, extended_config) =>
-      ReasonReact.Update(Loaded(toggle_collected(school, room), extended_config))
+      ReasonReact.Update(
+        Loaded(toggle_collected(school, room), extended_config),
+      )
     | ToggleExtendedConfig(school, extended_config) =>
       ReasonReact.Update(
         Loaded(school, extended_config == "M8" ? "F8" : "M8"),
+      )
+    | AddToExtended(school, kid, extended_config) =>
+      ReasonReact.Update(
+        Loaded(toggle_extended(school, kid), extended_config),
       )
     | Toggle(school, kid, extended_config) =>
       ReasonReact.Update(Loaded(toggle(school, kid), extended_config))
@@ -137,7 +144,8 @@ let make = _children => {
               ++ (extended_config == "M8" ? "summer" : "fall"),
             )
           }
-        </span><br/>
+        </span>
+        <br />
         <button
           onClick=(
             _event =>
@@ -145,8 +153,7 @@ let make = _children => {
           )>
           {
             ReasonReact.string(
-              "Switch to "
-              ++ (extended_config == "M8" ? "fall" : "summer"),
+              "Switch to " ++ (extended_config == "M8" ? "fall" : "summer"),
             )
           }
         </button>
@@ -159,14 +166,22 @@ let make = _children => {
         <hr />
         <Roster
           school
-          kidClicked=(event => self.send(Toggle(school, event, extended_config)))
-          collectedClicked=(event => self.send(RoomCollected(school, event, extended_config)))
+          kidClicked=(
+            event => self.send(Toggle(school, event, extended_config))
+          )
+          addextClicked=(
+            event => self.send(AddToExtended(school, event, extended_config))
+          )
+          collectedClicked=(
+            event => self.send(RoomCollected(school, event, extended_config))
+          )
           core=true
         /> /* true means it'll have toggleable buttons */
         <hr />
         <Roster
           school={get_extended_rooms(school, extended_config)}
           kidClicked=(_event => ())
+          addextClicked=(_event => ())
           collectedClicked=(
             /* TODO this shouldnt even rnder the button */ _event => ()
           )

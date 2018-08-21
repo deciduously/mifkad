@@ -87,12 +87,15 @@ let get_extended_kids = (school, extended_config) =>
             switch (extended_config) {
             | "M8" => get_extended_letter_M8(r.letter)
             | "F8" => get_extended_letter_F8(r.letter)
+            | _ => "ERR!!!"
             },
           kids:
             ref(
               Array.of_list(
                 List.filter(
-                  k => k.schedule.expected == "Extended",
+                  k =>
+                    k.schedule.expected == "Extended"
+                    || k.schedule.expected == "Added",
                   Array.to_list(r.kids^),
                 ),
               ),
@@ -166,6 +169,37 @@ let toggle = (school, kid) => {
                     schedule: {
                       ...kid.schedule,
                       actual: !kid.schedule.actual,
+                    },
+                  };
+                } else {
+                  k;
+                },
+              room.kids^,
+            ),
+          ),
+      },
+      school.classrooms,
+    ),
+};
+
+let toggle_extended = (school, kid) => {
+  /* Returns a new school with the specified kid toggled */
+  ...school,
+  classrooms:
+    Array.map(
+      room => {
+        ...room,
+        kids:
+          ref(
+            Array.map(
+              k =>
+                if (kid == k) {
+                  {
+                    ...kid,
+                    schedule: {
+                      ...kid.schedule,
+                      expected:
+                        kid.schedule.expected == "Core" ? "Added" : "Core",
                     },
                   };
                 } else {

@@ -10,8 +10,9 @@ type category =
 
 let component = ReasonReact.statelessComponent("Kid");
 
-let make = (~kid: kid, ~onClick, ~core, _children) => {
-  let click = _event => onClick(kid) /* When the button is clicked, pass the kid on up with the callback */;
+let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
+  let toggleclick = _event => kidClicked(kid) /* When the button is clicked, pass the kid on up with the callback */;
+  let addextclick = _event => addextClicked(kid);
   {
     ...component,
     render: _self => {
@@ -51,15 +52,22 @@ let make = (~kid: kid, ~onClick, ~core, _children) => {
           {ReasonReact.string(to_disp_name(kid.name))}
         </div>
       | ButtonExtended =>
-        <button className=button_class onClick=click>
+        <button className=button_class onClick=toggleclick>
           {ReasonReact.string(to_disp_name(kid.name))}
         </button>
       | ButtonCore =>
         <div>
-          <button className=button_class onClick=click>
+          <button className=button_class onClick=toggleclick>
             {ReasonReact.string(to_disp_name(kid.name))}
           </button>
-          <input type_="checkbox" name="addext" />
+          <button className="pink_sheet" onClick=addextclick>
+            {
+              ReasonReact.string(
+                (kid.schedule.expected == "Added" ? "Remove" : "Add")
+                ++ " pink sheet",
+              )
+            }
+          </button>
         </div>
       };
     },
