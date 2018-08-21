@@ -1,3 +1,11 @@
+body {
+    background-color: #c6d9ec;
+}
+
+button {
+    background-color: #ffcc99;
+}
+
 h1 {
   text-align: center;
 }
@@ -29,12 +37,12 @@ footer {
 }
 
 .In {
-    background-color: green;
+    background-color: #00cc66;
 }
 
 .Out {
     text-decoration: line-through;
-    background-color: red;
+    background-color: #ff4d4d;
 }
 
 .pink_sheet {
