@@ -68,8 +68,8 @@ let ext_classroom = classroom: string => {
   ++ "\r\n";
 };
 
-let school = school: string => {
-  let ext = get_extended_rooms(school);
+let school = (school, extended_config): string => {
+  let ext = get_extended_rooms(school, extended_config);
   let uncollected_rooms = get_uncollected_rooms(school);
   let uncollected_str =
     String.length(uncollected_rooms) >= 1 ?

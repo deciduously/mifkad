@@ -6,15 +6,16 @@ type state =
   | ChooseDay
   | Loading
   | Error
-  | Loaded(school);
+  | Loaded(school, string /* extended_config*/);
 
 type action =
   | GetEnrollment(string) /* This is the day */
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
   | ResetDay /* Toggle carries a kid payload, not just a name? */
-  | RoomCollected(school, classroom)
-  | Toggle(school, kid);
+  | RoomCollected(school, classroom, string)
+  | ToggleExtendedConfig(school, string /* extended_config*/) /* Rigth now there are just two states, fall and summer. */
+  | Toggle(school, kid, string);
 
 module Decode = {
   let day = json: day =>
@@ -77,13 +78,20 @@ let make = _children => {
             )
         ),
       )
-    | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
+    | EnrollmentReceived(school) =>
+      ReasonReact.Update(
+        Loaded(school, "M8" /* TODO - how will this work */),
+      )
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
-    | RoomCollected(school, room) =>
-      ReasonReact.Update(Loaded(toggle_collected(school, room)))
-    | Toggle(school, kid) =>
-      ReasonReact.Update(Loaded(toggle(school, kid)))
+    | RoomCollected(school, room, extended_config) =>
+      ReasonReact.Update(Loaded(toggle_collected(school, room), extended_config))
+    | ToggleExtendedConfig(school, extended_config) =>
+      ReasonReact.Update(
+        Loaded(school, extended_config == "M8" ? "F8" : "M8"),
+      )
+    | Toggle(school, kid, extended_config) =>
+      ReasonReact.Update(Loaded(toggle(school, kid), extended_config))
     },
   render: self =>
     switch (self.state) {
@@ -118,22 +126,46 @@ let make = _children => {
         }
       </div>
     | Loading => <div> {ReasonReact.string("Loading...")} </div>
-    | Loaded(school) =>
+    | Loaded(school, extended_config) =>
       <div id="app">
         <h1> {ReasonReact.string("Mifkad")} </h1>
         <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
+        <span>
+          {
+            ReasonReact.string(
+              "Extended day config: "
+              ++ (extended_config == "M8" ? "summer" : "fall"),
+            )
+          }
+        </span><br/>
+        <button
+          onClick=(
+            _event =>
+              self.send(ToggleExtendedConfig(school, extended_config))
+          )>
+          {
+            ReasonReact.string(
+              "Switch to "
+              ++ (extended_config == "M8" ? "fall" : "summer"),
+            )
+          }
+        </button>
         <hr />
-        <FileConsole school dayChangeClick=(_event => self.send(ResetDay)) />
+        <FileConsole
+          school
+          dayChangeClick=(_event => self.send(ResetDay))
+          extended_config
+        />
         <hr />
         <Roster
           school
-          kidClicked=(event => self.send(Toggle(school, event)))
-          collectedClicked=(event => self.send(RoomCollected(school, event)))
+          kidClicked=(event => self.send(Toggle(school, event, extended_config)))
+          collectedClicked=(event => self.send(RoomCollected(school, event, extended_config)))
           core=true
         /> /* true means it'll have toggleable buttons */
         <hr />
         <Roster
-          school={get_extended_rooms(school)}
+          school={get_extended_rooms(school, extended_config)}
           kidClicked=(_event => ())
           collectedClicked=(
             /* TODO this shouldnt even rnder the button */ _event => ()

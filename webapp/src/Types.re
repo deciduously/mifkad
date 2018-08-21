@@ -36,7 +36,8 @@ let get_uncollected_rooms = school =>
     List.filter(r => !r.collected, Array.to_list(school.classrooms)),
   );
 
-let get_extended_letter = letter =>
+let get_extended_letter_M8 = letter =>
+  /* Summer '18 config */
   switch (letter) {
   | "A" => "AE"
   | "C" => "CE"
@@ -53,7 +54,28 @@ let get_extended_letter = letter =>
   | _ => "ERR!!!"
   };
 
-let get_extended_kids = school =>
+let get_extended_letter_F8 = letter =>
+  /* Fall '18 config */
+  switch (letter) {
+  | "A"
+  | "C" => "CE"
+  | "B"
+  | "D" => "DE"
+  | "E"
+  | "F"
+  | "G" => "EE"
+  | "J"
+  | "K"
+  | "H"
+  | "I" => "IE"
+  | "L"
+  | "M"
+  | "N"
+  | "O" => "ME"
+  | _ => "ERR!!!"
+  };
+
+let get_extended_kids = (school, extended_config) =>
   /* Returns a school with only the Extended Day kids */
   {
     ...school,
@@ -61,7 +83,11 @@ let get_extended_kids = school =>
       Array.map(
         r => {
           ...r,
-          letter: get_extended_letter(r.letter),
+          letter:
+            switch (extended_config) {
+            | "M8" => get_extended_letter_M8(r.letter)
+            | "F8" => get_extended_letter_F8(r.letter)
+            },
           kids:
             ref(
               Array.of_list(
@@ -113,9 +139,9 @@ let add_extended_room = (school, classroom) => {
   {...school, classrooms: target^};
 };
 
-let get_extended_rooms = school => {
+let get_extended_rooms = (school, extended_config) => {
   /* Returns a `school` of the extended kids */
-  let s = get_extended_kids(school);
+  let s = get_extended_kids(school, extended_config);
   Array.fold_left(
     add_extended_room,
     {...school, classrooms: [||]},

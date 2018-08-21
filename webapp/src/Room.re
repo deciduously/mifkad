@@ -43,7 +43,9 @@ let make =
                   {
                     Array.map(
                       k =>
-                        <li key={k.name}> {ReasonReact.string(Report.to_fmt_name(k.name))} </li>,
+                        <li key={k.name}>
+                          {ReasonReact.string(Report.to_fmt_name(k.name))}
+                        </li>,
                       absent,
                     )
                     |> ReasonReact.array
