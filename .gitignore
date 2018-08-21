@@ -10,7 +10,7 @@
 /target
 **/*.rs.bk
 
-/sample/sample_enroll_all_detail_week.xlsx
+current.xls
 yarn-error.log
 **/.#*
 **/.~*

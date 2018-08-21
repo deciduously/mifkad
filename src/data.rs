@@ -1,7 +1,7 @@
 // data.rs handles reading in the Enrollment: Site report and populating internal data structure
 
 // TODO Xls OR Xlsx
-use calamine::{open_workbook, Reader, Xlsx};
+use calamine::{open_workbook, Reader, Xls};
 use errors::*;
 use regex::Regex;
 use schema::*;
@@ -25,7 +25,7 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
 
     // Use calamind to read in the input sheet
     // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
-    let mut excel: Xlsx<_> = open_workbook(file_str).unwrap();
+    let mut excel: Xls<_> = open_workbook(file_str).unwrap();
 
     // Try to get "Sheet1" as `r` - it should always exist
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
@@ -118,7 +118,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_open_excel() {
-        let school = scrape_enrollment("mon", "sample/current.xlsx").unwrap();
+        let school = scrape_enrollment("mon", "sample/test.xls").unwrap();
         assert!(school.classrooms.len() > 0)
     }
 }
