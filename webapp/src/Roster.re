@@ -16,10 +16,10 @@ let make =
   render: _self =>
     <div className="roster">
       <ul className="classList">
-        {
+        (
           Array.map(
             classroom =>
-              <li key={classroom.letter} className="room">
+              <li key=classroom.letter className="room">
                 <Room
                   room=classroom
                   kidClicked
@@ -31,7 +31,7 @@ let make =
             school.classrooms,
           )
           |> ReasonReact.array
-        }
+        )
       </ul>
     </div>,
 };

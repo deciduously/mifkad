@@ -18,10 +18,10 @@ let to_fmt_name = name => {
   first_name ++ " " ++ last_initial ++ ".";
 };
 
-let kid = kid: string =>
+let kid = kid : string =>
   kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", ";
 
-let classroom = classroom: string => {
+let classroom = classroom : string => {
   let kidlist =
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   "Room "
@@ -34,10 +34,10 @@ let classroom = classroom: string => {
   ++ "\r\n";
 };
 
-let ext_kid = kid: string =>
+let ext_kid = kid : string =>
   kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", ";
 
-let ext_classroom = classroom: string => {
+let ext_classroom = classroom : string => {
   let absent_kids =
     Array.fold_left(
       (acc, k) => k.schedule.actual ? acc : acc ++ kid(k),
@@ -58,7 +58,7 @@ let ext_classroom = classroom: string => {
        /* Expected minus absent */ Array.length(classroom.kids^)
        - List.length(
            List.filter(
-             k => !k.schedule.actual,
+             k => ! k.schedule.actual,
              Array.to_list(classroom.kids^),
            ),
          ),
@@ -68,7 +68,7 @@ let ext_classroom = classroom: string => {
   ++ "\r\n";
 };
 
-let school = (school, extended_config): string => {
+let school = (school, extended_config) : string => {
   let ext = get_extended_rooms(school, extended_config);
   let uncollected_rooms = get_uncollected_rooms(school);
   let uncollected_str =

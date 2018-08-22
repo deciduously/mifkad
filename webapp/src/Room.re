@@ -15,53 +15,58 @@ let make =
   let click = _event => collectedClicked(room);
   {
     ...component,
-    render: _self =>
+    render: _self => {
+      let headcount = Array.length(room.kids^);
+      let absent =
+        Array.of_list(
+          List.filter(k => ! k.schedule.actual, Array.to_list(room.kids^)),
+        );
       <div className="roomContent">
-        <h4 className="roomLetter">
-          {
+        <h4 className="roomLetter"> (ReasonReact.string("Room " ++ room.letter)) </h4>
+        <p>
+          (
             ReasonReact.string(
-              room.letter ++ ": max " ++ string_of_int(room.capacity),
+              string_of_int(headcount - Array.length(absent))
+              ++ "/"
+              ++ string_of_int(headcount)
+              ++ " - max "
+              ++ string_of_int(room.capacity),
             )
-          }
-        </h4>
-        {
-          core ?
-            <button onClick=click>
-              {
-                ReasonReact.string(room.collected ? "Ready" : "Need to finish")
-              }
-            </button> :
-            <span />
-        }
+          )
+          <br/>
+          (
+            core ?
+              <button onClick=click>
+                (
+                  ReasonReact.string(
+                    room.collected ? "Ready" : "Need to finish",
+                  )
+                )
+              </button> :
+              <span />
+          )
+        </p>
         <KidList kids=room.kids^ kidClicked addextClicked core />
-        {
+        (
           core ?
-            {
-              let absent =
-                Array.of_list(
-                  List.filter(
-                    k => !k.schedule.actual,
-                    Array.to_list(room.kids^),
-                  ),
-                );
-              <div>
-                <span> {ReasonReact.string("Absent:")} </span>
-                <ul>
-                  {
-                    Array.map(
-                      k =>
-                        <li key={k.name}>
-                          {ReasonReact.string(Report.to_fmt_name(k.name))}
-                        </li>,
-                      absent,
-                    )
-                    |> ReasonReact.array
-                  }
-                </ul>
-              </div>;
-            } :
+            <div>
+              <span> (ReasonReact.string("Absent:")) </span>
+              <ul>
+                (
+                  Array.map(
+                    k =>
+                      <li key=k.name>
+                        (ReasonReact.string(Report.to_fmt_name(k.name)))
+                      </li>,
+                    absent,
+                  )
+                  |> ReasonReact.array
+                )
+              </ul>
+            </div> :
             <span />
-        }
-      </div>,
+        )
+      </div>;
+    },
   };
 };

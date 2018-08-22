@@ -20,6 +20,7 @@ footer {
 }
 
 .kidlist {
+    display: inline-block;
 }
 
 .absentlist {
@@ -51,7 +52,7 @@ footer {
 
 .room {
     width: 33%;
-    display: inline-grid;
+    display: inline-block;
     vertical-align: top;
     position: relative;
 }

@@ -49,24 +49,24 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
       switch (category(kid)) {
       | NoButton =>
         <div className=button_class>
-          {ReasonReact.string(to_disp_name(kid.name))}
+          (ReasonReact.string(to_disp_name(kid.name)))
         </div>
       | ButtonExtended =>
         <button className=button_class onClick=toggleclick>
-          {ReasonReact.string(to_disp_name(kid.name))}
+          (ReasonReact.string(to_disp_name(kid.name)))
         </button>
       | ButtonCore =>
         <div>
           <button className=button_class onClick=toggleclick>
-            {ReasonReact.string(to_disp_name(kid.name))}
+            (ReasonReact.string(to_disp_name(kid.name)))
           </button>
           <button className="pink_sheet" onClick=addextclick>
-            {
+            (
               ReasonReact.string(
                 (kid.schedule.expected == "Added" ? "Remove" : "Add")
                 ++ " pink sheet",
               )
-            }
+            )
           </button>
         </div>
       };
