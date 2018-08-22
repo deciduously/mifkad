@@ -4,7 +4,7 @@ use data::scrape_enrollment;
 use std::path::PathBuf;
 
 pub fn index(_req: HttpRequest) -> Result<NamedFile> {
-    let path: PathBuf = PathBuf::from("./webapp/src/index.html");
+    let path: PathBuf = PathBuf::from("./mifkad-assets/index.html");
     Ok(NamedFile::open(path)?)
 }
 
