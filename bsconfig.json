@@ -11,7 +11,7 @@
     "react-jsx": 2
   },
   "sources": {
-    "dir": "webapp/src",
+    "dir": "src/frontend",
     "subdirs": true
   },
   "package-specs": [
