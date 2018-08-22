@@ -89,7 +89,7 @@ fn run() -> Result<()> {
                         .register()
                 }
             })
-            .handler("/static", StaticFiles::new("./static/"))
+            .handler("/static", StaticFiles::new("./mifkad-assets/"))
             .middleware(middleware::Logger::default())
     }).bind(addr)
         .chain_err(|| "Could not initialize server")?
