@@ -51,6 +51,10 @@ footer {
     background-color: pink;
 }
 
+.no_pink_sheet {
+    background-color: #be81f7;
+}
+
 .room {
     width: 33%;
     display: inline-block;

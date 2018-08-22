@@ -17,6 +17,7 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
     ...component,
     render: _self => {
       let button_class = kid.schedule.actual ? "In" : "Out";
+      let addext_class = kid.schedule.expected == "Added" ? "pink_sheet" : "no_pink_sheet";
 
       let to_disp_name = name => {
         /* Takes FIRSTNAME LASTNAME and returns Firstname Lastname */
@@ -60,7 +61,7 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
           <button className=button_class onClick=toggleclick>
             (ReasonReact.string(to_disp_name(kid.name)))
           </button>
-          <button className="pink_sheet" onClick=addextclick>
+          <button className=addext_class onClick=addextclick>
             (
               ReasonReact.string(
                 (kid.schedule.expected == "Added" ? "Undo p" : "P")
