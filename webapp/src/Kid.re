@@ -23,7 +23,7 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
         let idx_of_spc = String.index(name, ' ');
 
         let first_name =
-          String.sub(name, 0, idx_of_spc)  /* start_idx, len */
+          String.sub(name, 0, idx_of_spc) /* start_idx, len */
           |> String.lowercase
           |> String.capitalize;
 
@@ -63,8 +63,8 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
           <button className="pink_sheet" onClick=addextclick>
             (
               ReasonReact.string(
-                (kid.schedule.expected == "Added" ? "Remove" : "Add")
-                ++ " pink sheet",
+                (kid.schedule.expected == "Added" ? "Undo p" : "P")
+                ++ "ink sheet",
               )
             )
           </button>

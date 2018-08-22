@@ -9,7 +9,7 @@ let to_fmt_name = name => {
   let idx_of_spc = String.index(name, ' ');
 
   let first_name =
-    String.sub(name, 0, idx_of_spc)  /* start_idx, len */
+    String.sub(name, 0, idx_of_spc) /* start_idx, len */
     |> String.lowercase
     |> String.capitalize;
 
@@ -26,7 +26,7 @@ let classroom = classroom : string => {
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   "Room "
   ++ classroom.letter
-  ++ ": "  /* Check if empty, and if it's not empty, trim off the trialing comma */
+  ++ ": " /* Check if empty, and if it's not empty, trim off the trialing comma */
   ++ (
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"
@@ -69,6 +69,15 @@ let ext_classroom = classroom : string => {
 };
 
 let school = (school, extended_config) : string => {
+  let date = [%raw
+    {|
+      function() {
+        var d = new Date();
+        var s = d.toLocaleDateString();
+        return s;
+      }
+    |}
+  ];
   let ext = get_extended_rooms(school, extended_config);
   let uncollected_rooms = get_uncollected_rooms(school);
   let uncollected_str =
@@ -81,10 +90,13 @@ let school = (school, extended_config) : string => {
        "",
        school.classrooms,
      )
-  ++ "\r\nExtended Day:\r\n"
+  ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "
+  ++ date()
+  ++ ":\r\n\r\n"
   ++ Array.fold_left(
        (acc, room) => acc ++ ext_classroom(room),
        "",
        ext.classrooms,
-     );
+     )
+  ++ "\r\nThanks,\r\n";
 };
