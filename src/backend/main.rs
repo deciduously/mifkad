@@ -19,16 +19,11 @@ extern crate serde_json;
 //extern crate uuid;
 
 mod data;
-//mod enrollment;
 mod errors {
     error_chain!{}
 }
 mod handlers;
 mod schema;
-
-//pub mod enrollment_capnp {
-//    include!(concat!(env!("OUT_DIR"), "/enrollment_capnp.rs"));
-//}
 
 use actix_web::{
     fs::StaticFiles,
@@ -39,7 +34,11 @@ use actix_web::{
 };
 use errors::*;
 use handlers::*;
-use std::env::{set_var, var};
+use std::{cell::Cell, env::{set_var, var}};
+
+struct AppState {
+    school: Cell<schema::School>,
+}
 
 fn init_logging(level: u64) -> Result<()> {
     // if RUST_BACKTRACE is set, ignore the arg given and set `trace` no matter what
