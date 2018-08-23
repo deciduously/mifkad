@@ -189,7 +189,7 @@ let make = _children => {
         />
         <hr />
         <footer>
-          (ReasonReact.string("\xA9 2018 deciduously - "))
+          (ReasonReact.string("mifkad v0.1.0 \xA9 2018 deciduously - "))
           <a href="https://github.com/deciduously/mifkad">
             (ReasonReact.string("source"))
           </a>

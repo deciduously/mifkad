@@ -1,9 +1,9 @@
-/* FileConsole.re contains the buttons for roster uploading */
+/* FileConsole.re contains the buttons for roster preview and download */
 
 open Types;
 
 type action =
-  | Click /* this needs to go after state and action */;
+  | Click;
 
 let component = ReasonReact.statelessComponent("FileConsole");
 

@@ -26,7 +26,7 @@ let classroom = classroom : string => {
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   "Room "
   ++ classroom.letter
-  ++ ": "  /* Check if empty, and if it's not empty, trim off the trialing comma */
+  ++ ": "  /* Check if empty, and if it's not empty, trim off the trailing comma */
   ++ (
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"
@@ -41,7 +41,11 @@ let trim_trailing = s =>
 let ext_classroom = classroom : string => {
   let absent_kids =
     Array.fold_left(
-      (acc, k) => k.schedule.actual ? acc : (/* If the kid's a pink sheet, no need to say they were going to be added */k.schedule.expected == "Added" ? acc : acc ++ kid(k)),
+      (acc, k) =>
+        k.schedule.actual ?
+          acc :
+          /* If the kid's a pink sheet, no need to say they were going to be added */
+          k.schedule.expected == "Added" ? acc : acc ++ kid(k),
       "",
       classroom.kids^,
     );
@@ -50,15 +54,17 @@ let ext_classroom = classroom : string => {
     Array.fold_left(
       (acc, k) =>
         k.schedule.expected == "Added" ?
-          (/* If the kid is absent, no need to say they're added */k.schedule.actual ? acc ++ to_fmt_name(k.name) ++ ", " : acc) : acc,
+          /* If the kid is absent, no need to say they're added */
+          k.schedule.actual ? acc ++ to_fmt_name(k.name) ++ ", " : acc : acc,
       "",
       classroom.kids^,
     );
   let none_added = String.length(added_kids) == 0;
   let absent_str = none_absent ? "" : trim_trailing(absent_kids);
   let added_str = none_added ? "" : trim_trailing(added_kids);
-  
-  String.sub(classroom.letter, 0, 1 /* Trim the trailing "E" */)
+
+  "Room "
+  ++ String.sub(classroom.letter, 0, 1 /* Trim the trailing "E" */)
   ++ ": "
   ++ string_of_int(
        /* Expected minus absent */ Array.length(classroom.kids^)
