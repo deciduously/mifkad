@@ -9,7 +9,7 @@ let to_fmt_name = name => {
   let idx_of_spc = String.index(name, ' ');
 
   let first_name =
-    String.sub(name, 0, idx_of_spc) /* start_idx, len */
+    String.sub(name, 0, idx_of_spc)  /* start_idx, len */
     |> String.lowercase
     |> String.capitalize;
 
@@ -26,16 +26,13 @@ let classroom = classroom : string => {
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   "Room "
   ++ classroom.letter
-  ++ ": " /* Check if empty, and if it's not empty, trim off the trialing comma */
+  ++ ": "  /* Check if empty, and if it's not empty, trim off the trialing comma */
   ++ (
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"
   )
   ++ "\r\n";
 };
-
-let ext_kid = kid : string =>
-  kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", ";
 
 let ext_classroom = classroom : string => {
   let absent_kids =
@@ -44,15 +41,22 @@ let ext_classroom = classroom : string => {
       "",
       classroom.kids^,
     );
-  let absent_str =
-    /* Check if empty, and if not trim off trailing comma and put in brackets */
-    String.length(absent_kids) > 0 ?
-      "[No: "
-      ++ String.sub(absent_kids, 0, String.length(absent_kids) - 2)
-      ++ "]" :
-      "";
+  let none_absent = String.length(absent_kids) == 0;
+  let added_kids =
+    Array.fold_left(
+      (acc, k) =>
+        k.schedule.expected == "Added" ?
+          acc ++ to_fmt_name(k.name) ++ ", " : acc,
+      "",
+      classroom.kids^,
+    );
+  let none_added = String.length(added_kids) == 0;
+  let absent_str = none_absent ? "" : String.sub(absent_kids, 0, String.length(absent_kids) - 2) /* Trim trailing ", " */;
+  let added_str =
+    none_added ?
+      "" : String.sub(added_kids, 0, String.length(added_kids) - 2);
   "Room "
-  ++ classroom.letter
+  ++ String.sub(classroom.letter, 0, 1 /* Trim the trailing "E" */)
   ++ ": "
   ++ string_of_int(
        /* Expected minus absent */ Array.length(classroom.kids^)
@@ -63,8 +67,9 @@ let ext_classroom = classroom : string => {
            ),
          ),
      )
-  ++ " "
-  ++ absent_str
+  ++ (none_absent ? " " : " [No: " ++ absent_str)
+  ++ (none_added ? "" : (! none_absent ? "; " : "[") ++ "Add: " ++ added_str)
+  ++ (none_added && none_absent ? "" : "]")
   ++ "\r\n";
 };
 

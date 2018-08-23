@@ -17,14 +17,15 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
     ...component,
     render: _self => {
       let button_class = kid.schedule.actual ? "In" : "Out";
-      let addext_class = kid.schedule.expected == "Added" ? "pink_sheet" : "no_pink_sheet";
+      let addext_class =
+        kid.schedule.expected == "Added" ? "pink_sheet" : "no_pink_sheet";
 
       let to_disp_name = name => {
         /* Takes FIRSTNAME LASTNAME and returns Firstname Lastname */
         let idx_of_spc = String.index(name, ' ');
 
         let first_name =
-          String.sub(name, 0, idx_of_spc) /* start_idx, len */
+          String.sub(name, 0, idx_of_spc)  /* start_idx, len */
           |> String.lowercase
           |> String.capitalize;
 

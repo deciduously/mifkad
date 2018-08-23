@@ -22,7 +22,9 @@ let make =
           List.filter(k => ! k.schedule.actual, Array.to_list(room.kids^)),
         );
       <div className="roomContent">
-        <h4 className="roomLetter"> (ReasonReact.string("Room " ++ room.letter)) </h4>
+        <h4 className="roomLetter">
+          (ReasonReact.string("Room " ++ room.letter))
+        </h4>
         <p>
           (
             ReasonReact.string(
@@ -33,7 +35,7 @@ let make =
               ++ string_of_int(room.capacity),
             )
           )
-          <br/>
+          <br />
           (
             core ?
               <button onClick=click>
