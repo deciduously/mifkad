@@ -9,8 +9,8 @@ path = "src/backend/main.rs"
 
 [dependencies]
 
-actix = "0.5"
-actix-web = "0.5"
+actix = "0.7"
+actix-web = "0.7"
 calamine = "0.14"
 error-chain = "0.12"
 lazy_static = "1"

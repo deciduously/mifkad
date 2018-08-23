@@ -83,13 +83,16 @@ fn run() -> Result<()> {
                         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
-                        .resource("/", |r| r.method(http::Method::GET).with(index))
+                        .resource("/", |r| r.method(http::Method::GET).f(index))
                         // mon||monday, e.g.
                         .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
                         .register()
                 }
             })
-            .handler("/mifkad-assets", StaticFiles::new("./mifkad-assets/"))
+            .handler(
+                "/mifkad-assets",
+                StaticFiles::new("./mifkad-assets/").unwrap(),
+            )
             .middleware(middleware::Logger::default())
     }).bind(addr)
         .chain_err(|| "Could not initialize server")?
