@@ -34,6 +34,10 @@ let classroom = classroom : string => {
   ++ "\r\n";
 };
 
+let trim_trailing = s =>
+  /* Trims the trailing comma and space that happens when we grab our kid list strings */
+  String.sub(s, 0, String.length(s) - 2);
+
 let ext_classroom = classroom : string => {
   let absent_kids =
     Array.fold_left(
@@ -51,10 +55,8 @@ let ext_classroom = classroom : string => {
       classroom.kids^,
     );
   let none_added = String.length(added_kids) == 0;
-  let absent_str = none_absent ? "" : String.sub(absent_kids, 0, String.length(absent_kids) - 2) /* Trim trailing ", " */;
-  let added_str =
-    none_added ?
-      "" : String.sub(added_kids, 0, String.length(added_kids) - 2);
+  let absent_str = none_absent ? "" : trim_trailing(absent_kids);
+  let added_str = none_added ? "" : trim_trailing(added_kids);
   "Room "
   ++ String.sub(classroom.letter, 0, 1 /* Trim the trailing "E" */)
   ++ ": "
