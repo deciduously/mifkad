@@ -102,7 +102,7 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                         // If the kid is scheduled, push the kid to the latest open class
                         if new_kid.schedule.expected == Expected::Unscheduled {
                             info!(
-                                "{} not scheduled on {:?} - omitting from response",
+                                "{} not scheduled on {:?} - omitting from roster",
                                 &new_kid.name, weekday
                             );
                         } else {
