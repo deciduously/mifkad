@@ -84,3 +84,7 @@ footer {
     align-content: center;
 }
 
+.preview_box {
+    display: flex;
+    flex-direction: row;
+}

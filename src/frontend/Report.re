@@ -62,19 +62,21 @@ let ext_classroom = classroom: string => {
   let none_added = String.length(added_kids) == 0;
   let absent_str = none_absent ? "" : trim_trailing(absent_kids);
   let added_str = none_added ? "" : trim_trailing(added_kids);
+  let adjusted_headcount =
+    string_of_int(
+      /* Expected minus absent */ Array.length(classroom.kids^)
+      - List.length(
+          List.filter(
+            k => !k.schedule.actual,
+            Array.to_list(classroom.kids^),
+          ),
+        ),
+    );
 
   "Room "
   ++ String.sub(classroom.letter, 0, 1 /* Trim the trailing "E" */)
   ++ ": "
-  ++ string_of_int(
-       /* Expected minus absent */ Array.length(classroom.kids^)
-       - List.length(
-           List.filter(
-             k => !k.schedule.actual,
-             Array.to_list(classroom.kids^),
-           ),
-         ),
-     )
+  ++ adjusted_headcount
   ++ (none_absent ? " " : " [No: " ++ absent_str)
   ++ (none_added ? "" : (!none_absent ? "; " : "[") ++ "Add: " ++ added_str)
   ++ (none_added && none_absent ? "" : "]")
@@ -96,10 +98,30 @@ let core_attendance_str = school =>
 
 let core_attendance_preview = school =>
   Array.map(
-    c => <li key={c.letter}> {ReasonReact.string(classroom(c))} </li>,
+    c =>
+      <li key={c.letter ++ "pre"}> {ReasonReact.string(classroom(c))} </li>,
     school.classrooms,
   )
   |> ReasonReact.array;
+
+let ext_attendance_str = school =>
+  Array.fold_left(
+    (acc, room) => acc ++ ext_classroom(room),
+    "",
+    school.classrooms,
+  );
+
+let ext_attendance_preview = (school, extended_config) => {
+  let ext = get_extended_rooms(school, extended_config);
+  Array.map(
+    c =>
+      <li key={c.letter ++ "pre"}>
+        {ReasonReact.string(ext_classroom(c))}
+      </li>,
+    ext.classrooms,
+  )
+  |> ReasonReact.array;
+};
 
 let school = (school, extended_config): string => {
   let date = [%raw
@@ -111,16 +133,11 @@ let school = (school, extended_config): string => {
       }
     |}
   ];
-  let ext = get_extended_rooms(school, extended_config);
   uncollected(school)
   ++ core_attendance_str(school)
   ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "
   ++ date()
   ++ ":\r\n\r\n"
-  ++ Array.fold_left(
-       (acc, room) => acc ++ ext_classroom(room),
-       "",
-       ext.classrooms,
-     )
+  ++ ext_attendance_str(get_extended_rooms(school, extended_config))
   ++ "\r\nThanks,\r\n";
 };

@@ -13,17 +13,16 @@ let make = (~school, ~dayChangeClick, ~extended_config, _children) => {
     let dload =
       "data:application/octet-stream;charset=utf8;base64,"
       ++ btoa(Report.school(school, extended_config));
-    <div id="fileconsole">
+    <div>
+      <p> {ReasonReact.string(Report.uncollected(school))} </p>
+      <div className="preview_box">
+        <ul> {Report.core_attendance_preview(school)} </ul>
+        <ul> {Report.ext_attendance_preview(school, extended_config)} </ul>
+      </div>
+      <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
       <button id="console" onClick=dayChangeClick>
         {ReasonReact.string("Pick a different day")}
       </button>
-      <button
-        onClick={_event => alert(Report.school(school, extended_config))}>
-        {ReasonReact.string("Preview")}
-      </button>
-      <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
-      <p> {ReasonReact.string(Report.uncollected(school))} </p>
-      <ul> {Report.core_attendance_preview(school)} </ul>
     </div>;
   },
 };

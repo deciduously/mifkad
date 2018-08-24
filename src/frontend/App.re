@@ -137,28 +137,8 @@ let make = _children => {
       <div id="app">
         <h1> {ReasonReact.string("Mifkad")} </h1>
         <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
-        <span>
-          {
-            ReasonReact.string(
-              "Extended day config: "
-              ++ (extended_config == "M8" ? "summer" : "fall"),
-            )
-          }
-        </span>
-        <br />
-        <button
-          onClick=(
-            _event =>
-              self.send(ToggleExtendedConfig(school, extended_config))
-          )>
-          {
-            ReasonReact.string(
-              "Switch to " ++ (extended_config == "M8" ? "fall" : "summer"),
-            )
-          }
-        </button>
         <hr />
-        <FileConsole
+        <OutputViewer
           school
           dayChangeClick=(_event => self.send(ResetDay))
           extended_config
@@ -188,6 +168,26 @@ let make = _children => {
           core=false
         />
         <hr />
+        <span>
+          {
+            ReasonReact.string(
+              "Extended day config: "
+              ++ (extended_config == "M8" ? "summer" : "fall"),
+            )
+          }
+        </span>
+        <br />
+        <button
+          onClick=(
+            _event =>
+              self.send(ToggleExtendedConfig(school, extended_config))
+          )>
+          {
+            ReasonReact.string(
+              "Switch to " ++ (extended_config == "M8" ? "fall" : "summer"),
+            )
+          }
+        </button>
         <footer>
           {ReasonReact.string("mifkad v0.1.0 \xA9 2018 Ben Lovy - ")}
           <a href="https://github.com/deciduously/mifkad">

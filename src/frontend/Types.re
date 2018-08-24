@@ -4,6 +4,9 @@
 
 /* type expected = Core | Extended | Unscheduled; */
 
+/* External JS function used in download feature */
+[@bs.val] external btoa: string => string = "btoa";
+
 /* Type declarations */
 type day = {
   weekday: string,
@@ -227,6 +230,3 @@ let toggle_collected = (school, classroom) => {
       school.classrooms,
     ),
 };
-
-[@bs.val] external alert: string => unit = "alert";
-[@bs.val] external btoa: string => string = "btoa";
