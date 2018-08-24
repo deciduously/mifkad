@@ -27,6 +27,8 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
     // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
     let mut excel: Xls<_> = open_workbook(file_str).unwrap();
 
+    let mut headcount = 0;
+
     // Try to get "Sheet1" as `r` - it should always exist
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
         // Process each row
@@ -56,6 +58,16 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                             }
                         }
 
+                        // Display the previous class headcount  -this needs to happen once againa the end, and not the first time
+                        if school.classrooms.len() > 0 {
+                            let last_class = school.classrooms[school.classrooms.len() - 1].clone();
+                            info!(
+                                "Room {} headcount: {}",
+                                last_class.letter,
+                                last_class.kids.len(),
+                            );
+                        }
+
                         // create a new Classroom and push it to the school
                         let new_class = Classroom::new(caps[1].to_string(), capacity);
                         info!(
@@ -64,7 +76,6 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                         );
                         school.classrooms.push(new_class);
                     } else if KID_RE.is_match(&s) {
-                        debug!("MATCH KID: {}", &s);
                         let caps = KID_RE.captures(&s).unwrap();
 
                         // Reformat name from LAST, FIRST to FIRST LAST
@@ -84,20 +95,24 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                         };
                         let sched = &row[sched_idx];
                         let mut new_kid = Kid::new(name, day, &format!("{}", sched));
-                        info!(
+                        debug!(
                             "FOUND KID: {} - {} ({:?})",
                             new_kid.name, sched, new_kid.schedule.expected
                         );
                         // If the kid is scheduled, push the kid to the latest open class
                         if new_kid.schedule.expected == Expected::Unscheduled {
-                            info!("Not scheduled - omitting from response");
+                            info!(
+                                "{} not scheduled on {:?} - omitting from response",
+                                &new_kid.name, weekday
+                            );
                         } else {
                             let mut classroom = school.classrooms.pop().expect(
                                 "Kid found before classroom declaration - input file malformed",
                             );
                             classroom.push_kid(new_kid);
                             school.classrooms.push(classroom);
-                            info!("Adding to response");
+                            headcount += 1;
+                            debug!("Adding to response");
                         }
                     }
                 }
@@ -105,7 +120,16 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
             }
         }
     }
-    info!("ENROLLMENT LOADED - {:?}", weekday);
+    let last_class = school.classrooms[school.classrooms.len() - 1].clone();
+    info!(
+        "Room {} headcount: {}",
+        last_class.letter,
+        last_class.kids.len(),
+    );
+    info!(
+        "ENROLLMENT LOADED - {:?} - total headcount {}",
+        weekday, headcount
+    );
     // TODO some sort of persistence?  maybe even just writing the flat file as json
     Ok(school)
 }

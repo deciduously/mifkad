@@ -5,6 +5,7 @@
 **/lib/bs/
 /node_modules/
 /mifkad-assets/js/*
+/mifkad-assets/db
 **/*.bs.js
 
 /target

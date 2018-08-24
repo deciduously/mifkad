@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::str::FromStr;
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Classroom {
     pub letter: String,
     pub capacity: u8,
@@ -22,7 +22,7 @@ impl Classroom {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Day {
     pub weekday: Weekday,
     pub expected: Expected,
@@ -41,7 +41,7 @@ impl Day {
 
 // TODO carry the actual schedule with this
 // Unimportant for now - we dont care beyond whether or not they go to extended
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum Expected {
     Core,
     Extended,
@@ -81,7 +81,7 @@ impl FromStr for Expected {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Kid {
     //pub id: Uuid,
     pub name: String,

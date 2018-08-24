@@ -1,6 +1,7 @@
 extern crate actix;
 extern crate actix_web;
 extern crate calamine;
+extern crate chrono;
 //extern crate capnp;
 #[macro_use]
 extern crate error_chain;
@@ -32,14 +33,47 @@ use actix_web::{
     server::HttpServer,
     App,
 };
+use chrono::prelude::*;
 use errors::*;
 use handlers::*;
-use std::{cell::Cell, env::{set_var, var}};
+use std::{
+    cell::Cell,
+    env::{set_var, var},
+    fs::{create_dir, read_dir},
+    path::PathBuf,
+};
 
 struct AppState {
     school: Cell<schema::School>,
 }
 
+// Determine what day it is, and either write a new db file or read the one there
+// It returns the school to load in to the AppState
+fn init_db() -> Result<(schema::School)> {
+    // First, grab today's date and the day of the week
+    let today = Local::today();
+    let day_of_week = today.weekday();
+
+    // Then, open up our db folder in mifkad-assets.  If it doesnt exist, create it
+    // First, we need to build the path - I'm going to hardcode this, it's unlikely to move
+    let mut db_path = PathBuf::new();
+    db_path.push("mifkad-assets");
+    db_path.push("db");
+
+    if !db_path.exists() {
+        warn!("No db found!  Creating...");
+        create_dir(db_path).chain_err(|| "Could not create database dir")?;
+    }
+
+    // Now, check if we have an entry for today.  If it doesn't exist, create it with scrape_enrollment(day_of_week)
+
+    // Finally, read in today's entry from the database and return it
+
+    data::scrape_enrollment("mon", "current.xls") // this is doing to be a serde_json call
+}
+
+// Start env_logger - for now, change this number to change log level
+// I'm using it for all of main, just just actix-web
 fn init_logging(level: u64) -> Result<()> {
     // if RUST_BACKTRACE is set, ignore the arg given and set `trace` no matter what
     let verbosity = if var("RUST_BACKTRACE").unwrap_or("0".into()) == "1" {
@@ -65,9 +99,8 @@ fn init_logging(level: u64) -> Result<()> {
 }
 
 fn run() -> Result<()> {
-    // Start env_logger - for now, change this number to change log level
-    // I'm using it for all of main, just just actix-web
     init_logging(1)?;
+    let _sc = init_db()?;
 
     // actix setup
     let sys = actix::System::new("mifkad");
