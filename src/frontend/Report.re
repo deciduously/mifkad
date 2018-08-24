@@ -18,10 +18,10 @@ let to_fmt_name = name => {
   first_name ++ " " ++ last_initial ++ ".";
 };
 
-let kid = kid : string =>
+let kid = kid: string =>
   kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", ";
 
-let classroom = classroom : string => {
+let classroom = classroom: string => {
   let kidlist =
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   "Room "
@@ -38,7 +38,7 @@ let trim_trailing = s =>
   /* Trims the trailing comma and space that happens when we grab our kid list strings */
   String.sub(s, 0, String.length(s) - 2);
 
-let ext_classroom = classroom : string => {
+let ext_classroom = classroom: string => {
   let absent_kids =
     Array.fold_left(
       (acc, k) =>
@@ -70,18 +70,38 @@ let ext_classroom = classroom : string => {
        /* Expected minus absent */ Array.length(classroom.kids^)
        - List.length(
            List.filter(
-             k => ! k.schedule.actual,
+             k => !k.schedule.actual,
              Array.to_list(classroom.kids^),
            ),
          ),
      )
   ++ (none_absent ? " " : " [No: " ++ absent_str)
-  ++ (none_added ? "" : (! none_absent ? "; " : "[") ++ "Add: " ++ added_str)
+  ++ (none_added ? "" : (!none_absent ? "; " : "[") ++ "Add: " ++ added_str)
   ++ (none_added && none_absent ? "" : "]")
   ++ "\r\n";
 };
 
-let school = (school, extended_config) : string => {
+let uncollected = school => {
+  let uncollected_rooms = get_uncollected_rooms(school);
+  String.length(uncollected_rooms) >= 1 ?
+    "Double check the following rooms:\r\n" ++ uncollected_rooms ++ "\r\n" : "";
+};
+
+let core_attendance_str = school =>
+  Array.fold_left(
+    (acc, room) => acc ++ classroom(room),
+    "",
+    school.classrooms,
+  );
+
+let core_attendance_preview = school =>
+  Array.map(
+    c => <li key={c.letter}> {ReasonReact.string(classroom(c))} </li>,
+    school.classrooms,
+  )
+  |> ReasonReact.array;
+
+let school = (school, extended_config): string => {
   let date = [%raw
     {|
       function() {
@@ -92,17 +112,8 @@ let school = (school, extended_config) : string => {
     |}
   ];
   let ext = get_extended_rooms(school, extended_config);
-  let uncollected_rooms = get_uncollected_rooms(school);
-  let uncollected_str =
-    String.length(uncollected_rooms) >= 1 ?
-      "Double check the following rooms:\r\n" ++ uncollected_rooms ++ "\r\n" :
-      "";
-  uncollected_str
-  ++ Array.fold_left(
-       (acc, room) => acc ++ classroom(room),
-       "",
-       school.classrooms,
-     )
+  uncollected(school)
+  ++ core_attendance_str(school)
   ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "
   ++ date()
   ++ ":\r\n\r\n"

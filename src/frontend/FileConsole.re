@@ -15,13 +15,15 @@ let make = (~school, ~dayChangeClick, ~extended_config, _children) => {
       ++ btoa(Report.school(school, extended_config));
     <div id="fileconsole">
       <button id="console" onClick=dayChangeClick>
-        (ReasonReact.string("Pick a different day"))
+        {ReasonReact.string("Pick a different day")}
       </button>
       <button
-        onClick=(_event => alert(Report.school(school, extended_config)))>
-        (ReasonReact.string("Preview"))
+        onClick={_event => alert(Report.school(school, extended_config))}>
+        {ReasonReact.string("Preview")}
       </button>
-      <a href=dload> <button> (ReasonReact.string("Download")) </button> </a>
+      <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
+      <p> {ReasonReact.string(Report.uncollected(school))} </p>
+      <ul> {Report.core_attendance_preview(school)} </ul>
     </div>;
   },
 };

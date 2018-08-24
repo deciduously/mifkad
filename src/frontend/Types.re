@@ -33,7 +33,7 @@ let get_uncollected_rooms = school =>
   List.fold_left(
     (s, r) => s ++ r.letter ++ " ",
     "",
-    List.filter(r => ! r.collected, Array.to_list(school.classrooms)),
+    List.filter(r => !r.collected, Array.to_list(school.classrooms)),
   );
 
 let get_extended_letter_M8 = letter =>
@@ -168,7 +168,7 @@ let toggle = (school, kid) => {
                     ...kid,
                     schedule: {
                       ...kid.schedule,
-                      actual: ! kid.schedule.actual,
+                      actual: !kid.schedule.actual,
                     },
                   };
                 } else {
@@ -220,7 +220,7 @@ let toggle_collected = (school, classroom) => {
     Array.map(
       room =>
         if (classroom == room) {
-          {...room, collected: ! room.collected};
+          {...room, collected: !room.collected};
         } else {
           room;
         },
@@ -228,5 +228,5 @@ let toggle_collected = (school, classroom) => {
     ),
 };
 
-[@bs.val] external alert : string => unit = "alert";
-[@bs.val] external btoa : string => string = "btoa";
+[@bs.val] external alert: string => unit = "alert";
+[@bs.val] external btoa: string => string = "btoa";
