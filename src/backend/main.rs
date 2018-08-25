@@ -58,7 +58,8 @@ fn init_db() -> Result<(schema::School)> {
     let today = Local::today();
     // I don't just use chrono::Weekday because my custom type schema::Weekday only likes Mon-Fri, anything else will default to Mon
     let day_of_week = &format!("{:?}", today.weekday());
-    let filename = format!("{}{}{}.json", today.year(), today.month(), today.day());
+    let day_str = format!("{}{}{}", today.year(), today.month(), today.day());
+    let filename = format!("{}.json", day_str);
 
     // Then, open up our db folder in mifkad-assets.  If it doesnt exist, create it
     // First, we need to build the path - I'm going to hardcode this, it's unlikely to move
@@ -70,7 +71,7 @@ fn init_db() -> Result<(schema::School)> {
 
     if !&db_path.exists() {
         warn!("No db found!  Creating...");
-        create_dir(&db_path).chain_err(|| "Could not create database dir")?;
+        create_dir(&db_path).chain_err(|| "Could not create mifkad-assets\db")?;
     }
 
     // Now, check if we have an entry for today.  If it doesn't exist, write it from the GAN data
@@ -84,9 +85,11 @@ fn init_db() -> Result<(schema::School)> {
     let mut found = false;
     for l in &dir_listing {
         let curr_str = l.to_str().unwrap();
-        println!("{}", curr_str);
         if curr_str == filepath.to_str().unwrap() {
-            info!("Found {}, loading current status...", &filename);
+            info!(
+                "Found previously logged attendance for {}, loading...",
+                &day_str
+            );
             found = true;
             break;
         }
@@ -94,7 +97,7 @@ fn init_db() -> Result<(schema::School)> {
 
     // If we didn't find a corresponding file, serialize it out from DATAFILE
     if !found {
-        info!("No record found for today.  Reading {}", DATAFILE);
+        info!("No record found for {}.  Reading {}", day_str, DATAFILE);
         let school = json!(data::scrape_enrollment(day_of_week, DATAFILE)?);
         let mut new_f = File::create(filepath.to_str().unwrap())
             .chain_err(|| format!("could not create {}", &filename))?;
@@ -114,7 +117,7 @@ fn init_db() -> Result<(schema::School)> {
         .chain_err(|| format!("could not parse contents of {}", &filename))?;
 
     info!(
-        "Mifkad initialized - using db file {}",
+        "Mifkad initialized - using file {}",
         filepath.to_str().unwrap()
     );
     Ok(ret)

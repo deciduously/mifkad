@@ -20,7 +20,7 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
 
     // identify day
     let weekday = Weekday::from_str(day).chain_err(|| format!("Not a real day: {}", day))?;
-    info!("Loading {:?} from Enrollment export", weekday);
+    info!("Loading {:?} from {}", weekday, super::DATAFILE);
     let mut school = School::new(&weekday);
 
     // Use calamind to read in the input sheet
