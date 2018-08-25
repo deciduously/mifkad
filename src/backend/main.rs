@@ -71,7 +71,7 @@ fn init_db() -> Result<(schema::School)> {
 
     if !&db_path.exists() {
         warn!("No db found!  Creating...");
-        create_dir(&db_path).chain_err(|| "Could not create mifkad-assets\db")?;
+        create_dir(&db_path).chain_err(|| "Could not create mifkad-assets\\db")?;
     }
 
     // Now, check if we have an entry for today.  If it doesn't exist, write it from the GAN data
