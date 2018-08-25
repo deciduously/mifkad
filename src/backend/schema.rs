@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Classroom {
     pub letter: String,
     pub capacity: u8,
@@ -22,7 +22,7 @@ impl Classroom {
     }
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Day {
     pub weekday: Weekday,
     pub expected: Expected,
@@ -41,7 +41,7 @@ impl Day {
 
 // TODO carry the actual schedule with this
 // Unimportant for now - we dont care beyond whether or not they go to extended
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Expected {
     Core,
     Extended,
@@ -81,7 +81,7 @@ impl FromStr for Expected {
     }
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Kid {
     //pub id: Uuid,
     pub name: String,
@@ -98,7 +98,7 @@ impl Kid {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct School {
     pub weekday: Weekday,
     pub classrooms: Vec<Classroom>,
@@ -113,7 +113,7 @@ impl School {
     }
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Weekday {
     Monday,
     Tuesday,
@@ -128,17 +128,12 @@ impl FromStr for Weekday {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use self::Weekday::*;
         let ret = match s {
-            "mon" | "monday" => Monday,
-            "tue" | "tuesday" => Tuesday,
-            "wed" | "wednesday" => Wednesday,
-            "thu" | "thursday" => Thursday,
-            "fri" | "friday" => Friday,
-            _ => {
-                return Err(::std::io::Error::new(
-                    ::std::io::ErrorKind::Other,
-                    "Unknown weekday",
-                ));
-            }
+            "mon" | "monday" | "Mon" => Monday,
+            "tue" | "tuesday" | "Tue" => Tuesday,
+            "wed" | "wednesday" | "Wed" => Wednesday,
+            "thu" | "thursday" | "Thu" => Thursday,
+            "fri" | "friday" | "Fri" => Friday,
+            _ => Monday, // if anything else, liek a weekend, just run it for Monday - keep the "pick a different day" button
         };
         Ok(ret)
     }

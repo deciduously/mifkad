@@ -61,16 +61,14 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                         // Display the previous class headcount  -this needs to happen once againa the end, and not the first time
                         if school.classrooms.len() > 0 {
                             let last_class = school.classrooms[school.classrooms.len() - 1].clone();
-                            info!(
-                                "Room {} headcount: {}",
-                                last_class.letter,
-                                last_class.kids.len(),
-                            );
+                            let prev_headcount = last_class.kids.len();
+                            headcount += prev_headcount;
+                            info!("Room {} headcount: {}", last_class.letter, prev_headcount,);
                         }
 
                         // create a new Classroom and push it to the school
                         let new_class = Classroom::new(caps[1].to_string(), capacity);
-                        info!(
+                        debug!(
                             "FOUND CLASS: {} (max {})",
                             &new_class.letter, &new_class.capacity
                         );
@@ -111,7 +109,6 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                             );
                             classroom.push_kid(new_kid);
                             school.classrooms.push(classroom);
-                            headcount += 1;
                             debug!("Adding to response");
                         }
                     }
