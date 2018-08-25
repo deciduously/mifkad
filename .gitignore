@@ -10,6 +10,7 @@
 
 /target
 **/*.rs.bk
+mifkad.exe
 
 current.xls
 yarn-error.log

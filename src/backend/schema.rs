@@ -24,6 +24,8 @@ impl Classroom {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Day {
+    // this is a frontend Schedule, and doesnt need to store Weekday - that only neds to go in the toplevel School
+    // which is how the frontend will know which it was served
     pub weekday: Weekday,
     pub expected: Expected,
     pub actual: bool,

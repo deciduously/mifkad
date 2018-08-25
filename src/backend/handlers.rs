@@ -8,6 +8,10 @@ pub fn index(_req: &HttpRequest) -> Result<NamedFile> {
     Ok(NamedFile::open(path)?)
 }
 
+pub fn school_today(_req: &HttpRequest) -> impl Responder {
+    "TODAY"
+}
+
 pub fn school(day: Path<String>) -> impl Responder {
     Json(scrape_enrollment(&day, "current.xls").unwrap())
 }

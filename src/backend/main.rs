@@ -169,6 +169,8 @@ fn run() -> Result<()> {
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
                         .resource("/", |r| r.method(http::Method::GET).f(index))
+                        // whatever day it is today, or Monday on the weekend
+                        .resource("/school/today", |r| r.method(http::Method::GET).f(school_today))
                         // mon||monday, e.g.
                         .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
                         .register()
