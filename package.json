@@ -12,6 +12,7 @@
     "clean:re": "bsb -clean-world",
     "clean:rs": "cargo clean",
     "prod": "run-s clean build webpack:prod",
+    "prod:win": "run-s clean:re build:re webpack:prod",
     "test": "cargo test",
     "webpack": "webpack -w",
     "webpack:prod": "NODE_ENV=production webpack"
