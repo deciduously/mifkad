@@ -24,7 +24,7 @@ Yarn will fetch and build `bs-platform` for you, which does include compiling th
 
 ## Usage
 
-Download a [release](https://github.com/deciduously/mifkad/releases).  I am currently only providing Windows builds as that's probably the only environment this will run on.  Extract the zip file to a folder of your choice and ensure data is available at `.\current.xls`.  In the target environment this is already taken care of.  Then double click `mifkad.exe` and point your browser to the URL given, currently always `127.0.0.1:8080`.  Have a blast clicking buttons for hours on end.
+Download a [release](https://github.com/deciduously/mifkad/releases).  I am currently only providing Windows builds as that's probably the only environment this will run on.  Extract the zip file to a folder of your choice and ensure data is available at `.\current.xls`.  In the target environment this is already taken care of.  Then double click `mifkad.exe` and point your browser to the URL given, currently always `127.0.0.1:8080`.  Have a blast clicking buttons for hours on end.  On Windows, `mifkad-launcher.bat` is provided as a one-click solution for starting the server and opening the webpage in Google Chrome.  Leave the launcher in the same directory as the executable, and create a shortcut to it anywhere you like.
 
 ## Develop
 
