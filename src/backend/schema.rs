@@ -32,9 +32,9 @@ pub struct Day {
 }
 
 impl Day {
-    pub fn new(day: &str, schedule: &str) -> Self {
+    pub fn new(weekday: Weekday, schedule: &str) -> Self {
         Self {
-            weekday: Weekday::from_str(day).unwrap(),
+            weekday,
             expected: Expected::from_str(schedule).unwrap(),
             actual: true,
         }
@@ -91,11 +91,11 @@ pub struct Kid {
 }
 
 impl Kid {
-    pub fn new(name: String, day_str: &str, sched_str: &str) -> Self {
+    pub fn new(name: String, day: Weekday, sched_str: &str) -> Self {
         Self {
             //id: Uuid::new_v4(), // random
             name,
-            schedule: Day::new(day_str, sched_str),
+            schedule: Day::new(day, sched_str),
         }
     }
 }
@@ -115,7 +115,7 @@ impl School {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Weekday {
     Monday,
     Tuesday,
@@ -135,7 +135,7 @@ impl FromStr for Weekday {
             "wed" | "wednesday" | "Wed" => Wednesday,
             "thu" | "thursday" | "Thu" => Thursday,
             "fri" | "friday" | "Fri" => Friday,
-            _ => Monday, // if anything else, liek a weekend, just run it for Monday - keep the "pick a different day" button
+            _ => Monday, // if anything else, like a weekend, just run it for Monday - keep the "pick a different day" button
         };
         Ok(ret)
     }

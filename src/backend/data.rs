@@ -1,15 +1,15 @@
 // data.rs handles reading in the Enrollment: Site report and populating internal data structure
 
 // TODO Xls OR Xlsx
+use super::{schema, DATAFILE};
 use calamine::{open_workbook, Reader, Xls};
-use errors::*;
+use errors::{Result, ResultExt};
 use regex::Regex;
-use schema::*;
-use std::str::FromStr;
+use schema::{Classroom, Expected, Kid, School};
 
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
-pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
+pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School> {
     lazy_static! {
         // Define patterns to match
         static ref KID_RE: Regex =
@@ -18,13 +18,10 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
         static ref CAPACITY_RE: Regex = Regex::new(r"CLASS MAXIMUM: (\d+)").unwrap();
     }
 
-    // identify day
-    let weekday = Weekday::from_str(day).chain_err(|| format!("Not a real day: {}", day))?;
-    info!("Loading {:?} from {}", weekday, super::DATAFILE);
-    let mut school = School::new(&weekday);
+    info!("Loading {:?} from {}", day, DATAFILE);
+    let mut school = School::new(&day);
 
-    // Use calamind to read in the input sheet
-    // Decide if this is specified by user via the frontend, or just always dropped into the same location on the filesystem
+    // Use calamine to read in the input sheet
     let mut excel: Xls<_> = open_workbook(file_str).unwrap();
 
     let mut headcount = 0;
@@ -84,12 +81,12 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                         // init Kid datatype
 
                         // Add schedule day
-                        let sched_idx = match weekday {
-                            Weekday::Monday => 6,
-                            Weekday::Tuesday => 7,
-                            Weekday::Wednesday => 8,
-                            Weekday::Thursday => 9,
-                            Weekday::Friday => 10,
+                        let sched_idx = match day {
+                            schema::Weekday::Monday => 6,
+                            schema::Weekday::Tuesday => 7,
+                            schema::Weekday::Wednesday => 8,
+                            schema::Weekday::Thursday => 9,
+                            schema::Weekday::Friday => 10,
                         };
                         let sched = &row[sched_idx];
                         let mut new_kid = Kid::new(name, day, &format!("{}", sched));
@@ -101,7 +98,7 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
                         if new_kid.schedule.expected == Expected::Unscheduled {
                             info!(
                                 "{} not scheduled on {:?} - omitting from roster",
-                                &new_kid.name, weekday
+                                &new_kid.name, day
                             );
                         } else {
                             let mut classroom = school.classrooms.pop().expect(
@@ -117,6 +114,8 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
             }
         }
     }
+
+    // Print out the status info
     let last_class = school.classrooms[school.classrooms.len() - 1].clone();
     info!(
         "Room {} headcount: {}",
@@ -125,21 +124,22 @@ pub fn scrape_enrollment(day: &str, file_str: &str) -> Result<School> {
     );
     info!(
         "ENROLLMENT LOADED - {:?} - total headcount {}",
-        weekday, headcount
+        day, headcount
     );
-    // TODO some sort of persistence?  maybe even just writing the flat file as json
+
     Ok(school)
 }
 
-// Kid(name, mon, tue, wed, thu, fri)
-// Room
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{schema, scrape_enrollment};
+    use std::str::FromStr;
+
     #[test]
     fn test_open_excel() {
-        let school = scrape_enrollment("mon", "sample/test.xls").unwrap();
+        let school =
+            scrape_enrollment(schema::Weekday::from_str("mon").unwrap(), "sample/test.xls")
+                .unwrap();
         assert!(school.classrooms.len() > 0)
     }
 }

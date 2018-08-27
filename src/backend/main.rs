@@ -34,18 +34,49 @@ use actix_web::{
     server::HttpServer,
     App,
 };
-use chrono::prelude::*;
-use errors::*;
-use handlers::*;
+use chrono::prelude::{Date, Datelike, Local};
+use errors::{Result, ResultExt};
+use handlers::{index, school, school_today};
 use std::{
     cell::Cell,
     env::{set_var, var},
     fs::{create_dir, read_dir, File},
     io::{prelude::*, BufReader},
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 static DATAFILE: &str = "current.xls";
+
+lazy_static! {
+    // lazy_static facilitates the database file setup based on the current localtime system date at runtime
+
+    // Establish date
+    static ref TODAY: Date<Local> = Local::today();
+    // schema::Weekday only will ever be Mon-Fri, as opposed to chrono::Weekday
+    static ref WEEKDAY: schema::Weekday = schema::Weekday::from_str(&format!("{:?}", TODAY.weekday())).expect("Could not get a weekday from chrono");
+    static ref DAY_STR: String = format!("{}{}{}", TODAY.year(), TODAY.month(), TODAY.day());
+    // Paths are unlikely to change, so I'm hardcoding them.
+    static ref DB_FILE: PathBuf = {
+        let mut ret = PathBuf::new();
+        let mut s = String::from_str(&DAY_STR).unwrap();
+        s.push_str(".json");
+        ret.push(&s);
+        ret
+    };
+    static ref DB_DIR: PathBuf = {
+        let mut ret = PathBuf::new();
+        ret.push("mifkad-assets");
+        ret.push("db");
+        ret
+    };
+    static ref DB_FILEPATH: PathBuf = {
+        let mut ret = PathBuf::new();
+        ret.push(DB_DIR.to_str().unwrap());
+        ret.push(DB_FILE.to_str().unwrap());
+        ret
+    };
+}
 
 struct AppState {
     school: Cell<schema::School>,
@@ -54,29 +85,16 @@ struct AppState {
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
 fn init_db() -> Result<(schema::School)> {
-    // First, grab today's date and the day of the week
-    let today = Local::today();
-    // I don't just use chrono::Weekday because my custom type schema::Weekday only likes Mon-Fri, anything else will default to Mon
-    let day_of_week = &format!("{:?}", today.weekday());
-    let day_str = format!("{}{}{}", today.year(), today.month(), today.day());
-    let filename = format!("{}.json", day_str);
+    // Open up our db folder in mifkad-assets.  If it doesnt exist, create it
 
-    // Then, open up our db folder in mifkad-assets.  If it doesnt exist, create it
-    // First, we need to build the path - I'm going to hardcode this, it's unlikely to move
-    let mut db_path = PathBuf::new();
-    db_path.push("mifkad-assets");
-    db_path.push("db");
-    let mut filepath = db_path.clone();
-    filepath.push(&filename);
-
-    if !&db_path.exists() {
+    if !DB_DIR.exists() {
         warn!("No db found!  Creating...");
-        create_dir(&db_path).chain_err(|| "Could not create mifkad-assets\\db")?;
+        create_dir(DB_DIR.to_str().unwrap()).chain_err(|| "Could not create mifkad-assets\\db")?;
     }
 
     // Now, check if we have an entry for today.  If it doesn't exist, write it from the GAN data
     // First, get the contents of the directory
-    let dir_listing: Vec<PathBuf> = read_dir(&db_path)
+    let dir_listing: Vec<PathBuf> = read_dir(DB_DIR.to_str().unwrap())
         .chain_err(|| "could not read db!")?
         .map(|f| f.expect("could not read db entry").path())
         .collect();
@@ -85,10 +103,10 @@ fn init_db() -> Result<(schema::School)> {
     let mut found = false;
     for l in &dir_listing {
         let curr_str = l.to_str().unwrap();
-        if curr_str == filepath.to_str().unwrap() {
+        if curr_str == DB_FILEPATH.to_str().unwrap() {
             info!(
                 "Found previously logged attendance for {}, loading...",
-                &day_str
+                *DAY_STR
             );
             found = true;
             break;
@@ -97,28 +115,29 @@ fn init_db() -> Result<(schema::School)> {
 
     // If we didn't find a corresponding file, serialize it out from DATAFILE
     if !found {
-        info!("No record found for {}.  Reading {}", day_str, DATAFILE);
-        let school = json!(data::scrape_enrollment(day_of_week, DATAFILE)?);
-        let mut new_f = File::create(filepath.to_str().unwrap())
-            .chain_err(|| format!("could not create {}", &filename))?;
+        info!("No record found for {}.  Reading {}", *DAY_STR, DATAFILE);
+        let school = json!(data::scrape_enrollment(*WEEKDAY, DATAFILE)?);
+        let mut new_f = File::create(DB_FILEPATH.to_str().unwrap())
+            .chain_err(|| format!("could not create {}", DB_FILE.to_str().unwrap()))?;
         new_f
             .write_all(school.to_string().as_bytes())
-            .chain_err(|| format!("could not write data to {}", &filename))?;
+            .chain_err(|| format!("could not write data to {}", DB_FILE.to_str().unwrap()))?;
     }
 
     // Finally, read in today's entry from the database, which we've ensured exists
-    let f = File::open(Path::new(&filepath)).chain_err(|| format!("could not open {}", &filename))?;
+    let f = File::open(Path::new(DB_FILEPATH.to_str().unwrap()))
+        .chain_err(|| format!("could not open {}", DB_FILE.to_str().unwrap()))?;
     let mut bfr = BufReader::new(f);
     let mut input_str = String::new();
     let _ = bfr.read_to_string(&mut input_str);
 
     // Deserialize the file contents and return
     let ret: schema::School = serde_json::from_str(&input_str)
-        .chain_err(|| format!("could not parse contents of {}", &filename))?;
+        .chain_err(|| format!("could not parse contents of {}", DB_FILE.to_str().unwrap()))?;
 
     info!(
         "Mifkad initialized - using file {}",
-        filepath.to_str().unwrap()
+        DB_FILE.to_str().unwrap()
     );
     Ok(ret)
 }
@@ -153,7 +172,9 @@ fn run() -> Result<()> {
     // TODO - set this with a command-line flag.  For now, info is a good default
     // 0 - warn, 1 - info, 2 - debug, 3+ - trace
     init_logging(1)?;
-    let _sc = init_db()?; // Load this info the AppState
+
+    // Set up corresponding <DATE>.json file
+    let db = init_db()?; // Load this info the AppState
 
     // actix setup
     let sys = actix::System::new("mifkad");
