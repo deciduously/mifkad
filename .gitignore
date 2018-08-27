@@ -11,6 +11,7 @@
 /target
 **/*.rs.bk
 mifkad.exe
+/release
 
 current.xls
 yarn-error.log
