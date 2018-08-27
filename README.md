@@ -20,7 +20,7 @@ It probably works on earlier versions.  I don't know but the mystery keeps life 
 * `cargo-watch` - run `cargo install cargo-watch` to obtain if needed.
 * npm/yarn
 
-Yarn will fetch and build `bs-platform` for you, which does include compiling the OCaml compiler.  So the first run of `yarn install` is a bit bulky on this one unless you're already using ReasonML.  This build setup has been tested as-is on Linux (4.18+, but again, probably fine on almost anything) and Windows x86_64 platforms.  the `VS2015 x64 Native Tools Command Prompt`..
+Yarn will fetch and build `bs-platform` for you, which does include compiling the OCaml compiler.  So the first run of `yarn install` is a bit bulky on this one unless you're already using ReasonML.  This build setup has been tested as-is on Linux (4.18+, but again, probably fine on almost anything) and Windows x86_64 platforms with the `x86_64-pc-windows-msvc` toolchain.  On Windows, use the `VS2015 x64 Native Tools Command Prompt`, which I know you have if you've managed to install `rust`.
 
 ## Usage
 
@@ -41,6 +41,6 @@ yarn start
 * `yarn prod` - Run all production builds once, first the apps in parallel and then webpack
 * `yarn clean` - run `bsb -clean-world` and `cargo clean` - `yarn prod` will invoke this first.
 
-I use `release-win.bat` to automate the production build - it runs `yarn prod` and then puts together a release dir.  Depending on your hardware, the backend may take quite some time to build - `actix_web` brings along with it a somewhat large set of crates that all need to be rebuilt after invoking `cargo clean`.  Personally, I've never been too bothered by hefty build times if the resulting executable is reasonably sized and highly performant.  `mifkad.exe` clocks in perhaps a tad larger than I'd like for the functionality but in the grand scheme of things, I'm not losing sleep over a 5MB executable that isn't getting transferred around a lot.  It starts up practically instantaneously even on the old hardware at work and barely sips on system resources, so I'm happy.
+I use `release-win.bat` to automate the production build - it runs `yarn prod` and then puts together a release dir.  Depending on your hardware, the backend may take quite some time to build - `actix_web` brings along with it a somewhat large set of crates that all need to be rebuilt after invoking `cargo clean`.  Personally, I've never been too bothered by hefty build times if the resulting executable is reasonably sized and highly performant.  `mifkad.exe` clocks in perhaps a tad larger than I'd like for the functionality but in the grand scheme of things, I'm not losing sleep over a 5MB executable that isn't getting transferred around a lot.  It starts up practically instantaneously - at least faster than any other application we use - even on the old hardware at work and barely sips on system resources, so I'm happy.
 
 It expects an input file under `.\current.xls`. There's a sample at `sample\test.xls` with fudged data.  It intentionally has mismatched headers and things - that's how they come outta the big box, except for all the extraneous info I've removed - redacted, if I want to sound fancy.  And I do.  Rows or data in rows that aren't what I care about don't matter.
