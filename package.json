@@ -1,6 +1,6 @@
 {
   "name": "mifkad",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "build": "run-p build:re build:rs",
     "build:re": "bsb -make-world",
@@ -11,8 +11,8 @@
     "clean": "run-p clean:re clean:rs",
     "clean:re": "bsb -clean-world",
     "clean:rs": "cargo clean",
-    "prod:win": "run-s clean build:re webpack:prod",
-    "prod": "run-s clean build webpack:prod",
+    "prod:win": "run-s clean:re build:re webpack:prod",
+    "prod": "run-s clean:re build webpack:prod",
     "test": "cargo test",
     "webpack": "webpack -w",
     "webpack:prod": "NODE_ENV=production webpack"

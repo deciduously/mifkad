@@ -38,7 +38,6 @@ use chrono::prelude::{Date, Datelike, Local};
 use errors::{Result, ResultExt};
 use handlers::{index, school, school_today};
 use std::{
-    cell::Cell,
     env::{set_var, var},
     fs::{create_dir, read_dir, File},
     io::{prelude::*, BufReader},
@@ -78,9 +77,9 @@ lazy_static! {
     };
 }
 
-struct AppState {
-    school: Cell<schema::School>,
-}
+//struct AppState {
+//    school: Cell<schema::School>,
+//}
 
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
@@ -174,7 +173,7 @@ fn run() -> Result<()> {
     init_logging(1)?;
 
     // Set up corresponding <DATE>.json file
-    let db = init_db()?; // Load this info the AppState
+    let _db = init_db()?; // Load this info the AppState
 
     // actix setup
     let sys = actix::System::new("mifkad");
