@@ -43,6 +43,7 @@ use std::{
     io::{prelude::*, BufReader},
     path::{Path, PathBuf},
     str::FromStr,
+    sync::Arc,
 };
 
 static DATAFILE: &str = "current.xls";
@@ -77,9 +78,17 @@ lazy_static! {
     };
 }
 
-//struct AppState {
-//    school: Cell<schema::School>,
-//}
+pub struct AppState {
+    pub school: Arc<schema::School>,
+}
+
+impl AppState {
+    fn new(school: schema::School) -> Self {
+        Self {
+            school: Arc::new(school),
+        }
+    }
+}
 
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
@@ -171,16 +180,13 @@ fn run() -> Result<()> {
     // TODO - set this with a command-line flag.  For now, info is a good default
     // 0 - warn, 1 - info, 2 - debug, 3+ - trace
     init_logging(1)?;
-
-    // Set up corresponding <DATE>.json file
-    let _db = init_db()?; // Load this info the AppState
-
+    
     // actix setup
     let sys = actix::System::new("mifkad");
     let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
-        App::new()
+        App::with_state(AppState::new(init_db().expect("Could not initialize db")))
             .configure({
                 |app| {
                     Cors::for_app(app)
