@@ -43,7 +43,3 @@ yarn start
 * `yarn clean` - run `bsb -clean-world` and `cargo clean`
 
 It expects an input file under `.\current.xls`. There's a sample at `sample\test.xls` with fudged data.  It intentionally has mismatched headers and things - that's how they come outta the big box, except for all the extraneous info I've removed - redacted, if I want to sound fancy.  And I do.  Rows or data in rows that aren't what I care about don't matter.
-
-## Acknowledgements
-
-`wac.exe` is from [aslahellesoy](https://github.com/aslakhellesoy/wac), used because the target environment is Windows 7 and I don't wanna give up my ANSI-colored logging crate.  It just makes the codes work instead of printing obfuscating gibberish.

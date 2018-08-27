@@ -81,7 +81,7 @@ let make = _children => {
       )
     | EnrollmentReceived(school) =>
       ReasonReact.Update(
-        Loaded(school, "M8" /* TODO - how will this work */),
+        Loaded(school, "F8" /* TODO - how will this work */),
       )
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
