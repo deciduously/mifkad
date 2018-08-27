@@ -20,7 +20,7 @@ It probably works on earlier versions.  I don't know but the mystery keeps life 
 * `cargo-watch` - run `cargo install cargo-watch` to obtain if needed.
 * npm/yarn
 
-Yarn will fetch and build `bs-platform` for you, which does include compiling the OCaml compiler.  So the first run of `yarn install` is a bit bulky on this one unless you're already useing ReasonML.  This build setup has been tested as-is on Linux (4.18+, but again, probably fine on almost anything) and Windows x86_64 platforms.  In Windows, you do need to use WSL to build the frontend, which is Windows 10 exclusive.  I run the whole dev environemnt in WSL, and then build the backend using the native `x86_64-pc-windows-msvc` backend inside the `VS2015 x64 Native Tools Command Prompt` with `yarn build:rs`.
+Yarn will fetch and build `bs-platform` for you, which does include compiling the OCaml compiler.  So the first run of `yarn install` is a bit bulky on this one unless you're already using ReasonML.  This build setup has been tested as-is on Linux (4.18+, but again, probably fine on almost anything) and Windows x86_64 platforms.  In Windows, you do need to use WSL to build the frontend, which is Windows 10 exclusive.  I run the whole dev environment in WSL, and then for release build the backend using the native `x86_64-pc-windows-msvc` backend inside the `VS2015 x64 Native Tools Command Prompt` with `yarn build:rs`.
 
 ## Usage
 
