@@ -57,11 +57,16 @@ lazy_static! {
     static ref WEEKDAY: schema::Weekday = schema::Weekday::from_str(&format!("{:?}", TODAY.weekday())).expect("Could not get a weekday from chrono");
     static ref DAY_STR: String = format!("{}{}{}", TODAY.year(), TODAY.month(), TODAY.day());
     // Paths are unlikely to change, so I'm hardcoding them.
-    static ref DB_FILE: PathBuf = {
+    static ref DB_FILE_JSON: PathBuf = {
         let mut ret = PathBuf::new();
         let mut s = String::from_str(&DAY_STR).unwrap();
         s.push_str(".json");
         ret.push(&s);
+        ret
+    };
+    static ref DB_FILE: PathBuf = {
+        let mut ret = PathBuf::new();
+        ret.push("mifkad_db.sqlite");
         ret
     };
     static ref DB_DIR: PathBuf = {
@@ -73,7 +78,7 @@ lazy_static! {
     static ref DB_FILEPATH: PathBuf = {
         let mut ret = PathBuf::new();
         ret.push(DB_DIR.to_str().unwrap());
-        ret.push(DB_FILE.to_str().unwrap());
+        ret.push(DB_FILE_JSON.to_str().unwrap());
         ret
     };
 }
@@ -93,6 +98,13 @@ impl AppState {
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
 fn init_db() -> Result<(schema::School)> {
+    // TODO migrate to SQLite
+    // Still read in and initally serve a whole School
+    // schema::School can probably stay the same - we'll populate it from the db
+    // But then in a single table, each kid will have an entry for each day
+    // Kid(id,name,classroom,date,expected,actual)
+    // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
+    
     // Open up our db folder in mifkad-assets.  If it doesnt exist, create it
 
     if !DB_DIR.exists() {
@@ -145,7 +157,7 @@ fn init_db() -> Result<(schema::School)> {
 
     info!(
         "Mifkad initialized - using file {}",
-        DB_FILE.to_str().unwrap()
+        DB_FILE_JSON.to_str().unwrap()
     );
     Ok(ret)
 }
