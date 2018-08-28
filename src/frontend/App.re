@@ -55,7 +55,8 @@ let component = ReasonReact.reducerComponent("App");
 
 let make = _children => {
   ...component,
-  initialState: _state => ChooseDay,
+  initialState: _state => Loading,
+  didMount: self => self.send(GetEnrollment("today")),
   reducer: (action, _state) =>
     switch (action) {
     | GetEnrollment(s) =>
@@ -138,11 +139,7 @@ let make = _children => {
         <h1> (ReasonReact.string("Mifkad")) </h1>
         <h2> (ReasonReact.string("Attendance - " ++ school.weekday)) </h2>
         <hr />
-        <OutputViewer
-          school
-          dayChangeClick=(_event => self.send(ResetDay))
-          extended_config
-        />
+        <OutputViewer school extended_config />
         <hr />
         <Roster
           school
@@ -186,7 +183,12 @@ let make = _children => {
             )
           )
         </button>
+        {ReasonReact.string(" ")}
+        <button onClick=(_event => self.send(ResetDay))>
+          {ReasonReact.string("Pick a different day")}
+        </button>
         <footer>
+          <hr/>
           (ReasonReact.string("mifkad v0.1.2 \xA9 2018 Ben Lovy - "))
           <a href="https://github.com/deciduously/mifkad">
             (ReasonReact.string("source"))

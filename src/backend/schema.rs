@@ -100,7 +100,7 @@ impl Kid {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct School {
     pub weekday: Weekday,
     pub classrooms: Vec<Classroom>,

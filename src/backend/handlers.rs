@@ -6,14 +6,14 @@ use data::scrape_enrollment;
 use futures::future::{result, Future};
 use schema;
 use std::{
+    clone::Clone,
     io::{prelude::*, BufReader},
     path::PathBuf,
     str::FromStr,
-    sync::Arc,
 };
 
 pub fn index(
-    _req: &HttpRequest<Arc<AppState>>,
+    _req: &HttpRequest<AppState>,
 ) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
     let path: PathBuf = PathBuf::from("./mifkad-assets/index.html");
 
@@ -28,12 +28,20 @@ pub fn index(
         .body(ret))))
 }
 
+// The default handler used by the app
 pub fn school_today(
-    _req: &HttpRequest<Arc<AppState>>,
-) -> Box<Future<Item = &'static str, Error = actix_web::Error>> {
-    Box::new(result(Ok("TODAY")))
+    req: &HttpRequest<AppState>,
+) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
+    let a = &req.state().school;
+    let school = a.read().unwrap();
+    let ret = Json((*school).clone());
+    Box::new(result(Ok(ret)))
 }
 
+// This was used if the user specifically asks to pick a different day
+// Leaving here in case they do actually want that option.
+// NOTE - this doesn't affect the AppState, so it wont work with persistence.
+// You need to have this replace the app state
 pub fn school(
     day: Path<String>,
 ) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {

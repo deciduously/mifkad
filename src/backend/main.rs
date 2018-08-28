@@ -83,15 +83,16 @@ lazy_static! {
     };
 }
 
+// RwLock allows either multiple readers or a single writer, but not both
+// this will be wrapped in an Arc<AppState>
 pub struct AppState {
-    pub school: RwLock<schema::School>,
+    pub school: Arc<RwLock<schema::School>>,
 }
 
 impl AppState {
-    fn new() -> Result<Self> {
-        Ok(Self {
-            school: RwLock::new(init_db()?),
-        })
+    fn new(a: Arc<RwLock<schema::School>>) -> Result<Self> {
+        let school = Arc::clone(&a);
+        Ok(Self { school })
     }
 }
 
@@ -189,17 +190,18 @@ fn run() -> Result<()> {
     // 0 - warn, 1 - info, 2 - debug, 3+ - trace
     init_logging(1)?;
 
-    let state = Arc::new(AppState::new()?);
+    let initial_school = Arc::new(RwLock::new(init_db()?));
 
     // actix setup
     let sys = actix::System::new("mifkad");
     let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
-        App::with_state(Arc::clone(&state))
-            .configure({
-                |app| {
-                    Cors::for_app(app)
+        App::with_state(
+            AppState::new(Arc::clone(&initial_school)).expect("could not initialize AppState"),
+        ).configure({
+            |app| {
+                Cors::for_app(app)
                         .allowed_methods(vec!["GET", "POST"])
                         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                         .allowed_header(http::header::CONTENT_TYPE)
@@ -210,8 +212,8 @@ fn run() -> Result<()> {
                         // mon||monday, e.g.
                         .resource("/school/{day}", |r| r.route().with(school)) // with() allows actix_web extractors - still returning a Box<Future<...>>
                         .register()
-                }
-            })
+            }
+        })
             .handler(
                 "/mifkad-assets",
                 StaticFiles::new("./mifkad-assets/").unwrap(),

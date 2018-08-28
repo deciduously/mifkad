@@ -7,7 +7,7 @@ type action =
 
 let component = ReasonReact.statelessComponent("FileConsole");
 
-let make = (~school, ~dayChangeClick, ~extended_config, _children) => {
+let make = (~school, ~extended_config, _children) => {
   ...component,
   render: _self => {
     let dload =
@@ -20,9 +20,7 @@ let make = (~school, ~dayChangeClick, ~extended_config, _children) => {
         <ul> {Report.ext_attendance_preview(school, extended_config)} </ul>
       </div>
       <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
-      <button id="console" onClick=dayChangeClick>
-        {ReasonReact.string("Pick a different day")}
-      </button>
+      
     </div>;
   },
 };
