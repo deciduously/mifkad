@@ -1,7 +1,9 @@
 // handlers.rs defines the actix_web handlers
 //use super::AppState;
 use super::AppState;
-use actix_web::{self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path};
+use actix_web::{
+    self, fs::NamedFile, AsyncResponder, HttpMessage, HttpRequest, HttpResponse, Json, Path,
+};
 use data::scrape_enrollment;
 use futures::future::{result, Future};
 use schema;
@@ -13,15 +15,14 @@ use std::{
 };
 
 // The types of actions adjust_school knows how to do
-// TODO only needs Deserialize
 #[derive(Debug, Deserialize, Serialize)]
-enum Action<'a> {
+enum Action {
     // Flip a kid's attendance
     Toggle(u32),
     // Flip a kid's expected from "Core" to "Actual" or vice versa
     AddExt(u32),
     // Flip a room's collected field
-    Collect(&'a str),
+    Collect(u32),
 }
 
 pub fn index(
@@ -50,11 +51,16 @@ pub fn school_today(
 
 // the RwLock write handler
 pub fn adjust_school(
-    _req: &HttpRequest<AppState>,
-) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
-    let ret = schema::School::new(schema::Weekday::Monday); // TEMP
-                                                            // Marshall the reponse into
-    result(Ok(Json(ret))).responder()
+    req: &HttpRequest<AppState>,
+) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
+    req.json()
+        .from_err()
+        .and_then(|val: Action| {
+            println!("{:?}", val);
+            let ret = schema::School::new(schema::Weekday::Monday);
+            Ok(HttpResponse::Ok().json(ret))
+        })
+        .responder()
 }
 
 // This was used if the user specifically asks to pick a different day

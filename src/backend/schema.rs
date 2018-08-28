@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Classroom {
+    pub id: u32,
     pub letter: String,
     pub capacity: u8,
     pub collected: bool,
@@ -10,8 +11,9 @@ pub struct Classroom {
 }
 
 impl Classroom {
-    pub fn new(letter: String, capacity: u8) -> Self {
+    pub fn new(id: u32, letter: String, capacity: u8) -> Self {
         Self {
+            id,
             letter,
             capacity,
             collected: false,
@@ -26,17 +28,13 @@ impl Classroom {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Day {
-    // this is a frontend Schedule, and doesnt need to store Weekday - that only neds to go in the toplevel School
-    // which is how the frontend will know which it was served
-    pub weekday: Weekday,
     pub expected: Expected,
     pub actual: bool,
 }
 
 impl Day {
-    pub fn new(weekday: Weekday, schedule: &str) -> Self {
+    pub fn new(schedule: &str) -> Self {
         Self {
-            weekday,
             expected: Expected::from_str(schedule).unwrap(),
             actual: true,
         }
@@ -92,11 +90,11 @@ pub struct Kid {
 }
 
 impl Kid {
-    pub fn new(id: u32, name: String, day: Weekday, sched_str: &str) -> Self {
+    pub fn new(id: u32, name: String, sched_str: &str) -> Self {
         Self {
             id,
             name,
-            schedule: Day::new(day, sched_str),
+            schedule: Day::new(sched_str),
         }
     }
 }

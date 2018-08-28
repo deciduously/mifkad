@@ -25,6 +25,7 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
     let mut excel: Xls<_> = open_workbook(file_str).unwrap();
 
     let mut headcount = 0;
+    let mut classcount = 0;
 
     // Try to get "Sheet1" as `r` - it should always exist
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
@@ -63,12 +64,13 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
                         }
 
                         // create a new Classroom and push it to the school
-                        let new_class = Classroom::new(caps[1].to_string(), capacity);
+                        let new_class = Classroom::new(classcount, caps[1].to_string(), capacity);
                         debug!(
                             "FOUND CLASS: {} (max {})",
                             &new_class.letter, &new_class.capacity
                         );
                         school.classrooms.push(new_class);
+                        classcount += 1;
                     } else if KID_RE.is_match(&s) {
                         let caps = KID_RE.captures(&s).unwrap();
 
@@ -88,7 +90,7 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
                             schema::Weekday::Friday => 10,
                         };
                         let sched = &row[sched_idx];
-                        let mut new_kid = Kid::new(headcount, name, day, &format!("{}", sched));
+                        let mut new_kid = Kid::new(headcount, name, &format!("{}", sched));
                         debug!(
                             "FOUND KID: {} - {} ({:?})",
                             new_kid.name, sched, new_kid.schedule.expected
@@ -123,8 +125,8 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
         last_class.kids.len(),
     );
     info!(
-        "ENROLLMENT LOADED - {:?} - total headcount {}",
-        day, headcount
+        "ENROLLMENT LOADED - {:?} - total headcount {}, total classcount {}",
+        day, headcount, classcount
     );
 
     Ok(school)

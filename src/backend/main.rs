@@ -1,6 +1,5 @@
 extern crate actix;
 extern crate actix_web;
-//extern crate bytes;
 extern crate calamine;
 extern crate chrono;
 #[macro_use]
@@ -135,7 +134,7 @@ fn init_db() -> Result<(schema::School)> {
     if !found {
         info!("No record found for {}.  Reading {}", *DAY_STR, DATAFILE);
         let school = json!(data::scrape_enrollment(*WEEKDAY, DATAFILE)?);
-        let mut new_f = File::create(DB_FILEPATH.to_str().unwrap())
+        let mut new_f = File::create(*DB_FILEPATH_STR)
             .chain_err(|| format!("could not create {}", *DB_FILE_STR))?;
         new_f
             .write_all(school.to_string().as_bytes())

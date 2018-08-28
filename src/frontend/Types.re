@@ -9,17 +9,18 @@
 
 /* Type declarations */
 type day = {
-  weekday: string,
   expected: string,
   actual: bool,
 };
 
 type kid = {
+  id: int,
   name: string,
   schedule: day,
 };
 
 type classroom = {
+  id: int,
   letter: string,
   capacity: int,
   collected: bool,
@@ -168,10 +169,10 @@ let toggle = (school, kid) => {
               k =>
                 if (kid == k) {
                   {
-                    ...kid,
+                    ...k,
                     schedule: {
-                      ...kid.schedule,
-                      actual: !kid.schedule.actual,
+                      ...k.schedule,
+                      actual: !k.schedule.actual,
                     },
                   };
                 } else {
@@ -222,7 +223,7 @@ let toggle_collected = (school, classroom) => {
   classrooms:
     Array.map(
       room =>
-        if (classroom == room) {
+        if (room == classroom) {
           {...room, collected: !room.collected};
         } else {
           room;

@@ -21,19 +21,20 @@ type action =
 module Decode = {
   let day = json : day =>
     Json.Decode.{
-      weekday: json |> field("weekday", string),
       expected: json |> field("expected", string),
       actual: json |> field("actual", bool),
     };
 
   let kid = json : kid =>
     Json.Decode.{
+      id: json |> field("id", int),
       name: json |> field("name", string),
       schedule: json |> field("schedule", day),
     };
 
   let classroom = json : classroom =>
     Json.Decode.{
+      id: json |> field("id", int),
       letter: json |> field("letter", string),
       capacity: json |> field("capacity", int),
       collected: json |> field("collected", bool),
