@@ -19,7 +19,7 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
     }
 
     info!("Loading {:?} from {}", day, DATAFILE);
-    let mut school = School::new(&day);
+    let mut school = School::new(day);
 
     // Use calamine to read in the input sheet
     let mut excel: Xls<_> = open_workbook(file_str).unwrap();
@@ -56,11 +56,10 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
                         }
 
                         // Display the previous class headcount  -this needs to happen once againa the end, and not the first time
-                        if school.classrooms.len() > 0 {
+                        if !school.classrooms.is_empty() {
                             let last_class = school.classrooms[school.classrooms.len() - 1].clone();
                             let prev_headcount = last_class.kids.len();
-                            headcount += prev_headcount;
-                            info!("Room {} headcount: {}", last_class.letter, prev_headcount,);
+                            info!("Room {} headcount: {}", last_class.letter, prev_headcount);
                         }
 
                         // create a new Classroom and push it to the school
@@ -89,7 +88,7 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
                             schema::Weekday::Friday => 10,
                         };
                         let sched = &row[sched_idx];
-                        let mut new_kid = Kid::new(name, day, &format!("{}", sched));
+                        let mut new_kid = Kid::new(headcount, name, day, &format!("{}", sched));
                         debug!(
                             "FOUND KID: {} - {} ({:?})",
                             new_kid.name, sched, new_kid.schedule.expected
@@ -106,6 +105,7 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
                             );
                             classroom.push_kid(new_kid);
                             school.classrooms.push(classroom);
+                            headcount += 1;
                             debug!("Adding to response");
                         }
                     }

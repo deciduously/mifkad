@@ -1,41 +1,60 @@
 // handlers.rs defines the actix_web handlers
 //use super::AppState;
 use super::AppState;
-use actix_web::{self, fs::NamedFile, HttpRequest, HttpResponse, Json, Path};
+use actix_web::{self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path};
 use data::scrape_enrollment;
 use futures::future::{result, Future};
 use schema;
 use std::{
     clone::Clone,
-    io::{prelude::*, BufReader},
+    io::{prelude::Read, BufReader},
     path::PathBuf,
     str::FromStr,
 };
+
+// The types of actions adjust_school knows how to do
+// TODO only needs Deserialize
+#[derive(Debug, Deserialize, Serialize)]
+enum Action<'a> {
+    // Flip a kid's attendance
+    Toggle(u32),
+    // Flip a kid's expected from "Core" to "Actual" or vice versa
+    AddExt(u32),
+    // Flip a room's collected field
+    Collect(&'a str),
+}
 
 pub fn index(
     _req: &HttpRequest<AppState>,
 ) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
     let path: PathBuf = PathBuf::from("./mifkad-assets/index.html");
 
-    let f = NamedFile::open(&path).expect(&format!("Could not open {}", path.to_str().unwrap()));
+    let f = NamedFile::open(&path)
+        .unwrap_or_else(|_| panic!("Could not open {}", path.to_str().unwrap()));
     let mut bfr = BufReader::new(f.file());
     let mut ret = String::new();
     bfr.read_to_string(&mut ret)
-        .expect(&format!("could not read index file"));
+        .unwrap_or_else(|_| panic!("could not read index file"));
 
-    Box::new(result(Ok(HttpResponse::Ok()
-        .content_type("text/html")
-        .body(ret))))
+    result(Ok(HttpResponse::Ok().content_type("text/html").body(ret))).responder()
 }
 
-// The default handler used by the app
+// The RwLock read handler
 pub fn school_today(
     req: &HttpRequest<AppState>,
 ) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
-    let a = &req.state().school;
-    let school = a.read().unwrap();
-    let ret = Json((*school).clone());
-    Box::new(result(Ok(ret)))
+    let a = &req.state().school.read().unwrap();
+    let ret = Json((*a).clone());
+    result(Ok(ret)).responder()
+}
+
+// the RwLock write handler
+pub fn adjust_school(
+    _req: &HttpRequest<AppState>,
+) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
+    let ret = schema::School::new(schema::Weekday::Monday); // TEMP
+                                                            // Marshall the reponse into
+    result(Ok(Json(ret))).responder()
 }
 
 // This was used if the user specifically asks to pick a different day
@@ -45,10 +64,10 @@ pub fn school_today(
 pub fn school(
     day: Path<String>,
 ) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
-    Box::new(result(Ok(Json(
+    result(Ok(Json(
         scrape_enrollment(
             schema::Weekday::from_str(&day).expect("Unexpected day passed from URL"),
             "current.xls",
         ).unwrap(),
-    ))))
+    ))).responder()
 }

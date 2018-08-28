@@ -5,6 +5,7 @@ use std::str::FromStr;
 pub struct Classroom {
     pub letter: String,
     pub capacity: u8,
+    pub collected: bool,
     pub kids: Vec<Kid>,
 }
 
@@ -13,6 +14,7 @@ impl Classroom {
         Self {
             letter,
             capacity,
+            collected: false,
             kids: Vec::new(),
         }
     }
@@ -41,13 +43,12 @@ impl Day {
     }
 }
 
-// TODO carry the actual schedule with this
-// Unimportant for now - we dont care beyond whether or not they go to extended
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Expected {
     Core,
     Extended,
     Unscheduled,
+    Added,
 }
 
 impl FromStr for Expected {
@@ -85,15 +86,15 @@ impl FromStr for Expected {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Kid {
-    //pub id: Uuid,
+    pub id: u32,
     pub name: String,
     pub schedule: Day,
 }
 
 impl Kid {
-    pub fn new(name: String, day: Weekday, sched_str: &str) -> Self {
+    pub fn new(id: u32, name: String, day: Weekday, sched_str: &str) -> Self {
         Self {
-            //id: Uuid::new_v4(), // random
+            id,
             name,
             schedule: Day::new(day, sched_str),
         }
@@ -107,9 +108,9 @@ pub struct School {
 }
 
 impl School {
-    pub fn new(day: &Weekday) -> Self {
+    pub fn new(day: Weekday) -> Self {
         Self {
-            weekday: day.clone(),
+            weekday: day,
             classrooms: Vec::new(),
         }
     }
