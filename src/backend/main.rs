@@ -1,10 +1,11 @@
 extern crate actix;
 extern crate actix_web;
+//extern crate bytes;
 extern crate calamine;
 extern crate chrono;
-
 #[macro_use]
 extern crate error_chain;
+extern crate futures;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -18,7 +19,6 @@ extern crate serde;
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
-//extern crate uuid;
 
 mod data;
 mod errors {
@@ -104,7 +104,7 @@ fn init_db() -> Result<(schema::School)> {
     // But then in a single table, each kid will have an entry for each day
     // Kid(id,name,classroom,date,expected,actual)
     // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
-    
+
     // Open up our db folder in mifkad-assets.  If it doesnt exist, create it
 
     if !DB_DIR.exists() {
@@ -192,13 +192,13 @@ fn run() -> Result<()> {
     // TODO - set this with a command-line flag.  For now, info is a good default
     // 0 - warn, 1 - info, 2 - debug, 3+ - trace
     init_logging(1)?;
-    
+
     // actix setup
     let sys = actix::System::new("mifkad");
     let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
-        App::with_state(AppState::new(init_db().expect("Could not initialize db")))
+        App::new()
             .configure({
                 |app| {
                     Cors::for_app(app)
@@ -206,11 +206,11 @@ fn run() -> Result<()> {
                         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
-                        .resource("/", |r| r.method(http::Method::GET).f(index))
-                        // whatever day it is today, or Monday on the weekend
-                        .resource("/school/today", |r| r.method(http::Method::GET).f(school_today))
+                        .resource("/", |r| r.route().a(index)) // a() registers an async handler, which is a Box<Future<Item=impl Responder, actix_web::Error>>
+                        // whatever day it is today, or Monday on the weekend - placeholder
+                        .resource("/school/today", |r| r.route().a(school_today))
                         // mon||monday, e.g.
-                        .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
+                        .resource("/school/{day}", |r| r.route().with(school)) // with() allows actix_web extractors - still returning a Box<Future<...>>
                         .register()
                 }
             })
