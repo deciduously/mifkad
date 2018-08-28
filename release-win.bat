@@ -11,6 +11,8 @@ copy target\release\mifkad.exe release
 xcopy /s /i mifkad-assets release\mifkad-assets
 :: Clean up database in case it accidentally existed when releasing
 rmdir /s /q release\mifkad-assets\db
+:: Include fudged data for demo purposes
+copy sample\test.xls release\current.xls
 :: Copy remaining odds and ends
 copy LICENSE release\LICENSE.txt
 copy README.md release\README.md
