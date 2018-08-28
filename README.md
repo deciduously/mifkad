@@ -6,6 +6,8 @@ Attendance taking web app.
 
 This is a ReasonReact/actix_web rewrite of my prior [attendance](https://github.com/deciduously/attendance) Reagent/Rocket project, which can be considered deprecated.  There's still a lot of Clojure love, but pragmatism and all...
 
+This is not an app I expect will be useful to anyone but myself - the only reason I include such a thorough README is because it will likely need maintence about once a year, and I don't have nearly that attention span.
+
 ## Dependencies
 
 ### Release
