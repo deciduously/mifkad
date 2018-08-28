@@ -9,10 +9,11 @@ use std::{
     io::{prelude::*, BufReader},
     path::PathBuf,
     str::FromStr,
+    sync::Arc,
 };
 
 pub fn index(
-    _req: &HttpRequest<AppState>,
+    _req: &HttpRequest<Arc<AppState>>,
 ) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
     let path: PathBuf = PathBuf::from("./mifkad-assets/index.html");
 
@@ -28,7 +29,7 @@ pub fn index(
 }
 
 pub fn school_today(
-    _req: &HttpRequest<AppState>,
+    _req: &HttpRequest<Arc<AppState>>,
 ) -> Box<Future<Item = &'static str, Error = actix_web::Error>> {
     Box::new(result(Ok("TODAY")))
 }

@@ -43,7 +43,7 @@ use std::{
     io::{prelude::*, BufReader},
     path::{Path, PathBuf},
     str::FromStr,
-    sync::{RwLock, RwLockReadGuard},
+    sync::{Arc, RwLock},
 };
 
 static DATAFILE: &str = "current.xls";
@@ -81,18 +81,17 @@ lazy_static! {
         ret.push(DB_FILE_JSON.to_str().unwrap());
         ret
     };
-
-    static ref SCHOOL: RwLock<schema::School> = RwLock::new(init_db().unwrap());
 }
 
-pub struct AppState<'a> {
-    pub school: RwLockReadGuard<'a, schema::School>,
+pub struct AppState {
+    pub school: RwLock<schema::School>,
 }
 
-impl<'a> AppState<'a> {
-    fn new() -> Self {
-        let r = SCHOOL.read().unwrap();
-        Self { school: r }
+impl AppState {
+    fn new() -> Result<Self> {
+        Ok(Self {
+            school: RwLock::new(init_db()?),
+        })
     }
 }
 
@@ -190,12 +189,14 @@ fn run() -> Result<()> {
     // 0 - warn, 1 - info, 2 - debug, 3+ - trace
     init_logging(1)?;
 
+    let state = Arc::new(AppState::new()?);
+
     // actix setup
     let sys = actix::System::new("mifkad");
     let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
-        App::with_state(AppState::new())
+        App::with_state(Arc::clone(&state))
             .configure({
                 |app| {
                     Cors::for_app(app)
