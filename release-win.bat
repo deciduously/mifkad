@@ -12,6 +12,6 @@ xcopy /s /i mifkad-assets release\mifkad-assets
 :: Clean up database in case it accidentally existed when releasing
 rmdir /s /q release\mifkad-assets\db
 :: Copy remaining odds and ends
-copy LICENSE release\LICENSE
+copy LICENSE release\LICENSE.txt
 copy README.md release\README.md
 copy mifkad-launcher.bat release\mifkad-launcher.bat
