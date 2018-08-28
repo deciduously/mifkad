@@ -1,5 +1,6 @@
 // handlers.rs defines the actix_web handlers
 //use super::AppState;
+use super::AppState;
 use actix_web::{self, fs::NamedFile, HttpRequest, HttpResponse, Json, Path};
 use data::scrape_enrollment;
 use futures::future::{result, Future};
@@ -10,7 +11,9 @@ use std::{
     str::FromStr,
 };
 
-pub fn index(_req: &HttpRequest) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
+pub fn index(
+    _req: &HttpRequest<AppState>,
+) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
     let path: PathBuf = PathBuf::from("./mifkad-assets/index.html");
 
     let f = NamedFile::open(&path).expect(&format!("Could not open {}", path.to_str().unwrap()));
@@ -25,7 +28,7 @@ pub fn index(_req: &HttpRequest) -> Box<Future<Item = HttpResponse, Error = acti
 }
 
 pub fn school_today(
-    _req: &HttpRequest,
+    _req: &HttpRequest<AppState>,
 ) -> Box<Future<Item = &'static str, Error = actix_web::Error>> {
     Box::new(result(Ok("TODAY")))
 }

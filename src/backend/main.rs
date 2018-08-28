@@ -43,7 +43,7 @@ use std::{
     io::{prelude::*, BufReader},
     path::{Path, PathBuf},
     str::FromStr,
-    sync::Arc,
+    sync::{RwLock, RwLockReadGuard},
 };
 
 static DATAFILE: &str = "current.xls";
@@ -81,38 +81,35 @@ lazy_static! {
         ret.push(DB_FILE_JSON.to_str().unwrap());
         ret
     };
+
+    static ref SCHOOL: RwLock<schema::School> = RwLock::new(init_db().unwrap());
 }
 
-pub struct AppState {
-    pub school: Arc<schema::School>,
+pub struct AppState<'a> {
+    pub school: RwLockReadGuard<'a, schema::School>,
 }
 
-impl AppState {
-    fn new(school: schema::School) -> Self {
-        Self {
-            school: Arc::new(school),
-        }
+impl<'a> AppState<'a> {
+    fn new() -> Self {
+        let r = SCHOOL.read().unwrap();
+        Self { school: r }
     }
 }
 
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
-fn init_db() -> Result<(AppState)> {
-    // TODO migrate to SQLite
-    // Still read in and initally serve a whole School
-    // schema::School can probably stay the same - we'll populate it from the db
-    // But then in a single table, each kid will have an entry for each day
-    // Kid(id,name,classroom,date,expected,actual)
+fn init_db() -> Result<(schema::School)> {
+    // Kid(id,name,classroom,date,expected,actual) might be a good idea if I ever go sql
     // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
 
     // Open up our db folder in mifkad-assets.  If it doesnt exist, create it
-
     if !DB_DIR.exists() {
         warn!("No db found!  Creating...");
         create_dir(DB_DIR.to_str().unwrap()).chain_err(|| "Could not create mifkad-assets\\db")?;
     }
 
     // Now, check if we have an entry for today.  If it doesn't exist, write it from the GAN data
+
     // First, get the contents of the directory
     let dir_listing: Vec<PathBuf> = read_dir(DB_DIR.to_str().unwrap())
         .chain_err(|| "could not read db!")?
@@ -159,7 +156,7 @@ fn init_db() -> Result<(AppState)> {
         "Mifkad initialized - using file {}",
         DB_FILE_JSON.to_str().unwrap()
     );
-    Ok(AppState::new(ret))
+    Ok(ret)
 }
 
 // Start env_logger - for now, change this number to change log level
@@ -198,7 +195,7 @@ fn run() -> Result<()> {
     let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
-        App::new()
+        App::with_state(AppState::new())
             .configure({
                 |app| {
                     Cors::for_app(app)
