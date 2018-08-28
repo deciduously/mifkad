@@ -1,12 +1,8 @@
 // handlers.rs defines the actix_web handlers
-use super::AppState;
-use actix_web::{self, fs::NamedFile, HttpRequest, HttpResponse, Json, Path, Responder};
-//use bytes::Bytes;
+//use super::AppState;
+use actix_web::{self, fs::NamedFile, HttpRequest, HttpResponse, Json, Path};
 use data::scrape_enrollment;
-use futures::{
-    future::{self, result, Future},
-    stream::once,
-};
+use futures::future::{result, Future};
 use schema;
 use std::{
     io::{prelude::*, BufReader},

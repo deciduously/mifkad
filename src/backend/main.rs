@@ -97,7 +97,7 @@ impl AppState {
 
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
-fn init_db() -> Result<(schema::School)> {
+fn init_db() -> Result<(AppState)> {
     // TODO migrate to SQLite
     // Still read in and initally serve a whole School
     // schema::School can probably stay the same - we'll populate it from the db
@@ -159,7 +159,7 @@ fn init_db() -> Result<(schema::School)> {
         "Mifkad initialized - using file {}",
         DB_FILE_JSON.to_str().unwrap()
     );
-    Ok(ret)
+    Ok(AppState::new(ret))
 }
 
 // Start env_logger - for now, change this number to change log level
