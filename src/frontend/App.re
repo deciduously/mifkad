@@ -88,45 +88,12 @@ let make = _children => {
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | ResetDay => ReasonReact.Update(ChooseDay)
     | RoomCollected(school, room, extended_config) =>
-      ReasonReact.Update(
-        Loaded(toggle_collected(school, room), extended_config),
-      )
-    | ToggleExtendedConfig(school, extended_config) =>
-      ReasonReact.Update(
-        Loaded(school, extended_config == "M8" ? "F8" : "M8"),
-      )
-    | AddToExtended(school, kid, extended_config) =>
-      ReasonReact.Update(
-        Loaded(toggle_extended(school, kid), extended_config),
-      )
-    | Toggle(school, kid, extended_config) =>
       ReasonReact.UpdateWithSideEffects(
-        Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        Loaded(toggle_collected(school, room), extended_config) /* Assume it will work and flip in the frontend */,
         (
           self => {
-            let payload = Js.Dict.empty();
-            Js.Dict.set(payload, "t", Js.Json.string("Toggle"));
-            Js.Dict.set(
-              payload,
-              "c",
-              Js.Json.string(string_of_int(kid.id)),
-            );
             Js.Promise.(
-              Fetch.fetchWithInit(
-                "http://127.0.0.1:8080/school/adjust",
-                Fetch.RequestInit.make(
-                  ~method_=Post,
-                  ~body=
-                    Fetch.BodyInit.make(
-                      Js.Json.stringify(Js.Json.object_(payload)),
-                    ),
-                  ~headers=
-                    Fetch.HeadersInit.make({
-                      "Content-Type": "application/json",
-                    }),
-                  (),
-                ),
-              )
+              Fetch.fetch("http://127.0.0.1:8080/collected/" ++ string_of_int(room.id))
               |> then_(Fetch.Response.json)
               |> then_(json =>
                    json
@@ -142,7 +109,55 @@ let make = _children => {
           }
         ),
       )
-    },
+    | ToggleExtendedConfig(school, extended_config) =>
+      ReasonReact.Update(
+        Loaded(school, extended_config == "M8" ? "F8" : "M8"),
+      )
+    | AddToExtended(school, kid, extended_config) =>
+      ReasonReact.UpdateWithSideEffects(
+        Loaded(toggle_extended(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        (
+          self => {
+            Js.Promise.(
+              Fetch.fetch("http://127.0.0.1:8080/addext/" ++ string_of_int(kid.id))
+              |> then_(Fetch.Response.json)
+              |> then_(json =>
+                   json
+                   |> Decode.school
+                   |> (school => self.send(EnrollmentReceived(school)))
+                   |> resolve
+                 )
+              |> catch(_err =>
+                   Js.Promise.resolve(self.send(EnrollmentFailedToGet))
+                 )
+              |> ignore
+            );
+          }
+        ),
+      )
+    | Toggle(school, kid, extended_config) =>
+    ReasonReact.UpdateWithSideEffects(
+      Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+      (
+        self => {
+          Js.Promise.(
+            Fetch.fetch("http://127.0.0.1:8080/toggle/" ++ string_of_int(kid.id))
+            |> then_(Fetch.Response.json)
+            |> then_(json =>
+                 json
+                 |> Decode.school
+                 |> (school => self.send(EnrollmentReceived(school)))
+                 |> resolve
+               )
+            |> catch(_err =>
+                 Js.Promise.resolve(self.send(EnrollmentFailedToGet))
+               )
+            |> ignore
+          );
+        }
+      ),
+    )
+  },
   render: self =>
     switch (self.state) {
     | ChooseDay =>
