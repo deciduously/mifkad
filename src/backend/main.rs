@@ -102,7 +102,7 @@ fn run() -> Result<()> {
                         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
-                        .resource("/", |r| r.route().a(index)) // a() registers an async handler, which is a Box<Future<Item=impl Responder, actix_web::Error>>
+                        .resource("/", |r| r.route().a(index)) // a() registers an async handler, which returns a Box<Future<Item=impl Responder, actix_web::Error>>
                         .resource("/school/today", |r| r.method(http::Method::GET).a(school_today))
                         // Mon||mon||monday, e.g. - this is vestigial and may be removed
                         .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))

@@ -20,7 +20,6 @@ let make = (~school, ~extended_config, _children) => {
         <ul> {Report.ext_attendance_preview(school, extended_config)} </ul>
       </div>
       <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
-      
     </div>;
   },
 };

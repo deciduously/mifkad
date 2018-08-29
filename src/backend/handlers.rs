@@ -17,7 +17,6 @@ use std::{
 // The types of actions adjust_school knows how to do
 // Passed in as a Json POST body
 #[derive(Debug, Deserialize, Serialize)]
-#[serde(tag = "t", content = "c")]
 pub enum Action {
     // Flip a kid's attendance
     Toggle(u32),
@@ -57,6 +56,9 @@ pub fn adjust_school(
     (action, state): (Json<Action>, State<AppState>),
 ) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
     use self::Action::*;
+    println!("Received action");
+
+
     // First, grab the blocking write lock
     let mut a = state.school.write().unwrap();
 

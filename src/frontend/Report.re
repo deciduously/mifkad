@@ -111,7 +111,7 @@ let ext_attendance_str = school =>
     school.classrooms,
   );
 
-  let date = [%raw
+let date = [%raw
   {|
     function() {
       var d = new Date();
@@ -124,24 +124,31 @@ let ext_attendance_str = school =>
 let ext_attendance_preview = (school, extended_config) => {
   let ext = get_extended_rooms(school, extended_config);
   <div>
-    {ReasonReact.string("Hi Everyone,")}<br/>
-    {ReasonReact.string("Here are your extended day numbers for " ++ date() ++ ":")}
-    <br/>
-    <br/>
-    {Array.map(
-      c =>
-      <li key={c.letter ++ "pre"}>
-          {ReasonReact.string(ext_classroom(c))}
-      </li>,
-    ext.classrooms,
-    )
-    |> ReasonReact.array}
-    <br/>
-  {ReasonReact.string("Thanks,")}
-  </div>
+    {ReasonReact.string("Hi Everyone,")}
+    <br />
+    {
+      ReasonReact.string(
+        "Here are your extended day numbers for " ++ date() ++ ":",
+      )
+    }
+    <br />
+    <br />
+    {
+      Array.map(
+        c =>
+          <li key={c.letter ++ "pre"}>
+            {ReasonReact.string(ext_classroom(c))}
+          </li>,
+        ext.classrooms,
+      )
+      |> ReasonReact.array
+    }
+    <br />
+    {ReasonReact.string("Thanks,")}
+  </div>;
 };
 
-let school = (school, extended_config): string => {
+let school = (school, extended_config): string =>
   uncollected(school)
   ++ core_attendance_str(school)
   ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "
@@ -149,4 +156,3 @@ let school = (school, extended_config): string => {
   ++ ":\r\n\r\n"
   ++ ext_attendance_str(get_extended_rooms(school, extended_config))
   ++ "\r\nThanks,\r\n";
-};

@@ -19,20 +19,20 @@ type action =
   | Toggle(school, kid, string);
 
 module Decode = {
-  let day = json : day =>
+  let day = json: day =>
     Json.Decode.{
       expected: json |> field("expected", string),
       actual: json |> field("actual", bool),
     };
 
-  let kid = json : kid =>
+  let kid = json: kid =>
     Json.Decode.{
       id: json |> field("id", int),
       name: json |> field("name", string),
       schedule: json |> field("schedule", day),
     };
 
-  let classroom = json : classroom =>
+  let classroom = json: classroom =>
     Json.Decode.{
       id: json |> field("id", int),
       letter: json |> field("letter", string),
@@ -42,7 +42,7 @@ module Decode = {
         ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
     };
 
-  let school = json : school =>
+  let school = json: school =>
     Json.Decode.{
       weekday: json |> field("weekday", string),
       classrooms:
@@ -100,45 +100,86 @@ let make = _children => {
         Loaded(toggle_extended(school, kid), extended_config),
       )
     | Toggle(school, kid, extended_config) =>
-      ReasonReact.Update(Loaded(toggle(school, kid), extended_config))
+      ReasonReact.UpdateWithSideEffects(
+        Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        (
+          self => {
+            let payload = Js.Dict.empty();
+            Js.Dict.set(payload, "t", Js.Json.string("Toggle"));
+            Js.Dict.set(
+              payload,
+              "c",
+              Js.Json.string(string_of_int(kid.id)),
+            );
+            Js.Promise.(
+              Fetch.fetchWithInit(
+                "http://127.0.0.1:8080/school/adjust",
+                Fetch.RequestInit.make(
+                  ~method_=Post,
+                  ~body=
+                    Fetch.BodyInit.make(
+                      Js.Json.stringify(Js.Json.object_(payload)),
+                    ),
+                  ~headers=
+                    Fetch.HeadersInit.make({
+                      "Content-Type": "application/json",
+                    }),
+                  (),
+                ),
+              )
+              |> then_(Fetch.Response.json)
+              |> then_(json =>
+                   json
+                   |> Decode.school
+                   |> (school => self.send(EnrollmentReceived(school)))
+                   |> resolve
+                 )
+              |> catch(_err =>
+                   Js.Promise.resolve(self.send(EnrollmentFailedToGet))
+                 )
+              |> ignore
+            );
+          }
+        ),
+      )
     },
   render: self =>
     switch (self.state) {
     | ChooseDay =>
       <div>
-        <h2> (ReasonReact.string("Please select day:")) </h2>
+        <h2> {ReasonReact.string("Please select day:")} </h2>
         <br />
         <div>
           <button onClick=(_event => self.send(GetEnrollment("mon")))>
-            (ReasonReact.string("Monday"))
+            {ReasonReact.string("Monday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("tue")))>
-            (ReasonReact.string("Tuesday"))
+            {ReasonReact.string("Tuesday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("wed")))>
-            (ReasonReact.string("Wednesday"))
+            {ReasonReact.string("Wednesday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("thu")))>
-            (ReasonReact.string("Thursday"))
+            {ReasonReact.string("Thursday")}
           </button>
           <button onClick=(_event => self.send(GetEnrollment("fri")))>
-            (ReasonReact.string("Friday"))
+            {ReasonReact.string("Friday")}
           </button>
         </div>
       </div>
     | Error =>
       <div>
-        (
+        {
           ReasonReact.string(
             "An error occured connecting to the backend.  Check the server log.",
           )
-        )
+        }
       </div>
-    | Loading => <div> (ReasonReact.string("Loading...")) </div>
+    | Loading => <div> {ReasonReact.string("Loading...")} </div>
     | Loaded(school, extended_config) =>
       <div id="app">
-        <h1> (ReasonReact.string("Mifkad")) </h1>
-        <h2> (ReasonReact.string("Attendance - " ++ school.weekday)) </h2>
+        <h1> {ReasonReact.string("Mifkad")} </h1>
+        <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
         <hr />
         <OutputViewer school extended_config />
         <hr />
@@ -157,7 +198,7 @@ let make = _children => {
         /> /* core=true means it'll render toggleable buttons */
         <hr />
         <Roster
-          school=(get_extended_rooms(school, extended_config))
+          school={get_extended_rooms(school, extended_config)}
           kidClicked=(_event => ())
           addextClicked=(_event => ())
           collectedClicked=(_event => ())
@@ -165,12 +206,12 @@ let make = _children => {
         />
         <hr />
         <span>
-          (
+          {
             ReasonReact.string(
               "Extended day config: "
               ++ (extended_config == "M8" ? "summer" : "fall"),
             )
-          )
+          }
         </span>
         <br />
         <button
@@ -178,21 +219,21 @@ let make = _children => {
             _event =>
               self.send(ToggleExtendedConfig(school, extended_config))
           )>
-          (
+          {
             ReasonReact.string(
               "Switch to " ++ (extended_config == "M8" ? "fall" : "summer"),
             )
-          )
+          }
         </button>
         {ReasonReact.string(" ")}
         <button onClick=(_event => self.send(ResetDay))>
           {ReasonReact.string("Pick a different day")}
         </button>
         <footer>
-          <hr/>
-          (ReasonReact.string("mifkad v0.1.3 \xA9 2018 Ben Lovy - "))
+          <hr />
+          {ReasonReact.string("mifkad v0.1.3 \xA9 2018 Ben Lovy - ")}
           <a href="https://github.com/deciduously/mifkad">
-            (ReasonReact.string("source"))
+            {ReasonReact.string("source")}
           </a>
         </footer>
       </div>
