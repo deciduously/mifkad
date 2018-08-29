@@ -44,7 +44,6 @@ use std::{
 static DATAFILE: &str = "current.xls";
 
 // RwLock allows either multiple readers or a single writer, but not both
-// this will be wrapped in an Arc<AppState>
 pub struct AppState {
     pub school: Arc<RwLock<schema::School>>,
 }
@@ -104,11 +103,10 @@ fn run() -> Result<()> {
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
                         .resource("/", |r| r.route().a(index)) // a() registers an async handler, which is a Box<Future<Item=impl Responder, actix_web::Error>>
-                        // whatever day it is today, or Monday on the weekend - placeholder
-                        .resource("/school/today", |r| r.route().a(school_today))
-                        // mon||monday, e.g.
-                        .resource("/school/{day}", |r| r.route().with(school)) // with() allows actix_web extractors - still returning a Box<Future<...>>
-                        .resource("/school/adjust", |r| r.route().a(adjust_school))
+                        .resource("/school/today", |r| r.method(http::Method::GET).a(school_today))
+                        // Mon||mon||monday, e.g. - this is vestigial and may be removed
+                        .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
+                        .resource("/school/adjust", |r| r.method(http::Method::POST).with(adjust_school))
                         .register()
             }
         })

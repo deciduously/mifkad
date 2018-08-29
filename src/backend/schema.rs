@@ -112,6 +112,42 @@ impl School {
             classrooms: Vec::new(),
         }
     }
+
+    // Flip the kid with the given ID's attendance
+    pub fn toggle(&mut self, id: u32) {
+        for c in &mut self.classrooms {
+            for k in &mut c.kids {
+                if k.id == id {
+                    k.schedule.actual = !k.schedule.actual;
+                }
+            }
+        }
+    }
+
+    // Add the given kid to Extended Day
+    pub fn add_ext(&mut self, id: u32) {
+        use self::Expected::*;
+        for c in &mut self.classrooms {
+            for k in &mut c.kids {
+                if k.id == id {
+                    k.schedule.expected = if k.schedule.expected == Core {
+                        Added
+                    } else {
+                        Core
+                    };
+                }
+            }
+        }
+    }
+
+    // Toggle the given room's collected status
+    pub fn collect(&mut self, id: u32) {
+        for c in &mut self.classrooms {
+            if c.id == id {
+                c.collected = !c.collected;
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]

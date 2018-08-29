@@ -2,10 +2,10 @@
 //use super::AppState;
 use super::AppState;
 use actix_web::{
-    self, fs::NamedFile, AsyncResponder, HttpMessage, HttpRequest, HttpResponse, Json, Path,
+    self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path, State,
 };
 use data::scrape_enrollment;
-use futures::future::{result, Future};
+use futures::{future::result, Future};
 use schema;
 use std::{
     clone::Clone,
@@ -15,8 +15,10 @@ use std::{
 };
 
 // The types of actions adjust_school knows how to do
+// Passed in as a Json POST body
 #[derive(Debug, Deserialize, Serialize)]
-enum Action {
+#[serde(tag = "t", content = "c")]
+pub enum Action {
     // Flip a kid's attendance
     Toggle(u32),
     // Flip a kid's expected from "Core" to "Actual" or vice versa
@@ -44,23 +46,30 @@ pub fn index(
 pub fn school_today(
     req: &HttpRequest<AppState>,
 ) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
-    let a = &req.state().school.read().unwrap();
+    // Grab a non-blocking read lock and return the result as Json
+    let a = req.state().school.read().unwrap();
     let ret = Json((*a).clone());
     result(Ok(ret)).responder()
 }
 
 // the RwLock write handler
 pub fn adjust_school(
-    req: &HttpRequest<AppState>,
+    (action, state): (Json<Action>, State<AppState>),
 ) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
-    req.json()
-        .from_err()
-        .and_then(|val: Action| {
-            println!("{:?}", val);
-            let ret = schema::School::new(schema::Weekday::Monday);
-            Ok(HttpResponse::Ok().json(ret))
-        })
-        .responder()
+    use self::Action::*;
+    // First, grab the blocking write lock
+    let mut a = state.school.write().unwrap();
+
+    // Perform the proper mutation
+    match action.into_inner() {
+        Toggle(id) => (*a).toggle(id),
+        AddExt(id) => (*a).add_ext(id),
+        Collect(id) => (*a).collect(id),
+    }
+
+    // Return the mutated school as json
+    let ret = (*a).clone();
+    result(Ok(HttpResponse::Ok().json(ret))).responder()
 }
 
 // This was used if the user specifically asks to pick a different day
