@@ -114,7 +114,7 @@ impl School {
     }
 
     // Flip the kid with the given ID's attendance
-    pub fn toggle(&mut self, id: u32) {
+    pub fn toggle_kid(&mut self, id: u32) {
         for c in &mut self.classrooms {
             for k in &mut c.kids {
                 if k.id == id {
@@ -125,7 +125,7 @@ impl School {
     }
 
     // Add the given kid to Extended Day
-    pub fn add_ext(&mut self, id: u32) {
+    pub fn addext_kid(&mut self, id: u32) {
         use self::Expected::*;
         for c in &mut self.classrooms {
             for k in &mut c.kids {
@@ -141,7 +141,7 @@ impl School {
     }
 
     // Toggle the given room's collected status
-    pub fn collect(&mut self, id: u32) {
+    pub fn collect_room(&mut self, id: u32) {
         for c in &mut self.classrooms {
             if c.id == id {
                 c.collected = !c.collected;

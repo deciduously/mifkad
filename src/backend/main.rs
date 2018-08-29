@@ -93,23 +93,22 @@ fn run() -> Result<()> {
     let addr = "127.0.0.1:8080";
 
     HttpServer::new(move || {
-        App::with_state(
-            AppState::new(&Arc::clone(&initial_school)).expect("could not initialize AppState"),
-        ).configure({
-            |app| {
-                Cors::for_app(app)
+        App::with_state(AppState::new(&initial_school).expect("could not initialize AppState"))
+            .configure({
+                |app| {
+                    Cors::for_app(app)
+                        .send_wildcard()
                         .allowed_methods(vec!["GET", "POST"])
-                        .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                         .allowed_header(http::header::CONTENT_TYPE)
                         .max_age(3600)
                         .resource("/", |r| r.route().a(index)) // a() registers an async handler, which returns a Box<Future<Item=impl Responder, actix_web::Error>>
                         .resource("/school/today", |r| r.method(http::Method::GET).a(school_today))
                         // Mon||mon||monday, e.g. - this is vestigial and may be removed
                         .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
-                        .resource("/school/adjust", |r| r.method(http::Method::POST).with(adjust_school))
+                        .resource("/{action}/{id}", |r| r.method(http::Method::GET).with(adjust_school))
                         .register()
-            }
-        })
+                }
+            })
             .handler(
                 "/mifkad-assets",
                 StaticFiles::new("./mifkad-assets/").unwrap(),

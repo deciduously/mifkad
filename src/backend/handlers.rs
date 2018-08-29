@@ -15,15 +15,27 @@ use std::{
 };
 
 // The types of actions adjust_school knows how to do
-// Passed in as a Json POST body
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Action {
-    // Flip a kid's attendance
-    Toggle(u32),
-    // Flip a kid's expected from "Core" to "Actual" or vice versa
-    AddExt(u32),
-    // Flip a room's collected field
-    Collect(u32),
+    Toggle,
+    AddExt,
+    Collect,
+}
+
+impl FromStr for Action {
+    type Err = ::std::io::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "toggle" | "Toggle" => Ok(Action::Toggle),
+            "addext" | "AddExt" => Ok(Action::AddExt),
+            "collect" | "Collect" => Ok(Action::Collect),
+            _ => Err(::std::io::Error::new(
+                ::std::io::ErrorKind::InvalidInput,
+                "Not an Action",
+            )),
+        }
+    }
 }
 
 pub fn index(
@@ -53,25 +65,21 @@ pub fn school_today(
 
 // the RwLock write handler
 pub fn adjust_school(
-    (action, state): (Json<Action>, State<AppState>),
-) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
+    (path, state): (Path<(String, u32)>, State<AppState>),
+) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
     use self::Action::*;
-    println!("Received action");
+    let action = Action::from_str(&path.0).unwrap();
+    let id = path.1;
 
-
-    // First, grab the blocking write lock
     let mut a = state.school.write().unwrap();
 
-    // Perform the proper mutation
-    match action.into_inner() {
-        Toggle(id) => (*a).toggle(id),
-        AddExt(id) => (*a).add_ext(id),
-        Collect(id) => (*a).collect(id),
+    match action {
+        Toggle => (*a).toggle_kid(id),
+        AddExt => (*a).addext_kid(id),
+        Collect => (*a).collect_room(id),
     }
 
-    // Return the mutated school as json
-    let ret = (*a).clone();
-    result(Ok(HttpResponse::Ok().json(ret))).responder()
+    result(Ok(Json((*a).clone()))).responder()
 }
 
 // This was used if the user specifically asks to pick a different day
