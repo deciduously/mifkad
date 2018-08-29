@@ -3,9 +3,112 @@
 // TODO Xls OR Xlsx
 use super::{schema, DATAFILE};
 use calamine::{open_workbook, Reader, Xls};
+use chrono::prelude::{Date, Datelike, Local};
 use errors::{Result, ResultExt};
 use regex::Regex;
 use schema::{Classroom, Expected, Kid, School};
+use serde_json;
+use std::{
+    fs::{create_dir, read_dir, File},
+    io::{
+        prelude::{Read, Write},
+        BufReader,
+    },
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+
+// Determine what day it is, and either write a new db file or read the one there
+// It returns the school to load in to the AppState
+pub fn init_db() -> Result<(schema::School)> {
+    lazy_static! {
+        // lazy_static facilitates the database file setup based on the current localtime system date at runtime
+
+        // Establish date
+        static ref TODAY: Date<Local> = Local::today();
+        // schema::Weekday only will ever be Mon-Fri, as opposed to chrono::Weekday
+        static ref WEEKDAY: schema::Weekday = schema::Weekday::from_str(&format!("{:?}", TODAY.weekday())).expect("Could not get a weekday from chrono");
+        static ref DAY_STR: String = format!("{}{}{}", TODAY.year(), TODAY.month(), TODAY.day());
+        // Paths are unlikely to change, so I'm hardcoding them.
+        static ref DB_FILE: PathBuf = {
+            let mut ret = PathBuf::new();
+            let mut s = String::from_str(&DAY_STR).unwrap();
+            s.push_str(".json");
+            ret.push(&s);
+            ret
+        };
+        static ref DB_FILE_STR: &'static str = DB_FILE.to_str().unwrap();
+        static ref DB_DIR: PathBuf = {
+            let mut ret = PathBuf::new();
+            ret.push("mifkad-assets");
+            ret.push("db");
+            ret
+        };
+        static ref DB_DIR_STR: &'static str = DB_DIR.to_str().unwrap();
+        static ref DB_FILEPATH: PathBuf = {
+            let mut ret = PathBuf::new();
+            ret.push(DB_DIR.to_str().unwrap());
+            ret.push(DB_FILE.to_str().unwrap());
+            ret
+        };
+        static ref DB_FILEPATH_STR: &'static str = DB_FILEPATH.to_str().unwrap();
+    }
+    // Kid(id,name,classroom,date,expected,actual) might be a good idea if I ever go sql
+    // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
+
+    // Open up our db folder in mifkad-assets.  If it doesnt exist, create it
+    if !DB_DIR.exists() {
+        warn!("No db found!  Creating...");
+        create_dir(*DB_DIR_STR).chain_err(|| "Could not create mifkad-assets\\db")?;
+    }
+
+    // Now, check if we have an entry for today.  If it doesn't exist, write it from the GAN data
+
+    // First, get the contents of the directory
+    let dir_listing: Vec<PathBuf> = read_dir(*DB_DIR_STR)
+        .chain_err(|| "could not read db!")?
+        .map(|f| f.expect("could not read db entry").path())
+        .collect();
+
+    // Try to locate today.
+    let mut found = false;
+    for l in &dir_listing {
+        let curr_str = l.to_str().unwrap();
+        if curr_str == *DB_FILEPATH_STR {
+            info!(
+                "Found previously logged attendance for {}, loading...",
+                *DAY_STR
+            );
+            found = true;
+            break;
+        }
+    }
+
+    // If we didn't find a corresponding file, serialize it out from DATAFILE
+    if !found {
+        info!("No record found for {}.  Reading {}", *DAY_STR, DATAFILE);
+        let school = json!(scrape_enrollment(*WEEKDAY, DATAFILE)?);
+        let mut new_f = File::create(*DB_FILEPATH_STR)
+            .chain_err(|| format!("could not create {}", *DB_FILE_STR))?;
+        new_f
+            .write_all(school.to_string().as_bytes())
+            .chain_err(|| format!("could not write data to {}", *DB_FILE_STR))?;
+    }
+
+    // Finally, read in today's entry from the database, which we've ensured exists
+    let f = File::open(Path::new(*DB_FILEPATH_STR))
+        .chain_err(|| format!("could not open {}", *DB_FILE_STR))?;
+    let mut bfr = BufReader::new(f);
+    let mut input_str = String::new();
+    let _ = bfr.read_to_string(&mut input_str);
+
+    // Deserialize the file contents and return
+    let ret: schema::School = serde_json::from_str(&input_str)
+        .chain_err(|| format!("could not parse contents of {}", *DB_FILE_STR))?;
+
+    info!("Mifkad initialized - using file {}", *DB_FILE_STR);
+    Ok(ret)
+}
 
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
