@@ -7,7 +7,7 @@ type action =
 
 let component = ReasonReact.statelessComponent("FileConsole");
 
-let make = (~school, ~extended_config, _children) => {
+let make = (~school, ~extended_config, ~refreshClicked, ~resetClicked, _children) => {
   ...component,
   render: _self => {
     let dload =
@@ -19,7 +19,10 @@ let make = (~school, ~extended_config, _children) => {
         <ul> {Report.core_attendance_preview(school)} </ul>
         <ul> {Report.ext_attendance_preview(school, extended_config)} </ul>
       </div>
-      <a href=dload> <button> {ReasonReact.string("Download")} </button> </a>
+      <a href=dload> <button> {ReasonReact.string("Download")} </button> </a> <br /> <br />
+      <button onClick=refreshClicked>{ReasonReact.string("Refresh connection")}</button>
+      {ReasonReact.string(" ")}
+      <button onClick=resetClicked>{ReasonReact.string("Clear Attendance")}</button>
     </div>;
   },
 };

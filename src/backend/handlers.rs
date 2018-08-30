@@ -4,9 +4,9 @@ use super::AppState;
 use actix_web::{
     self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path, State,
 };
-use data::scrape_enrollment;
+use data::{init_db, reset_db, write_db};
 use futures::{future::result, Future};
-use schema;
+use schema::School;
 use std::{
     clone::Clone,
     io::{prelude::Read, BufReader},
@@ -20,6 +20,7 @@ pub enum Action {
     Toggle,
     AddExt,
     Collect,
+    Reset,
 }
 
 impl FromStr for Action {
@@ -30,6 +31,7 @@ impl FromStr for Action {
             "toggle" | "Toggle" => Ok(Action::Toggle),
             "addext" | "AddExt" => Ok(Action::AddExt),
             "collect" | "Collect" => Ok(Action::Collect),
+            "reset" | "Reset" => Ok(Action::Reset),
             _ => Err(::std::io::Error::new(
                 ::std::io::ErrorKind::InvalidInput,
                 "Not an Action",
@@ -56,7 +58,7 @@ pub fn index(
 // The RwLock read handler
 pub fn school_today(
     req: &HttpRequest<AppState>,
-) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
+) -> Box<Future<Item = Json<School>, Error = actix_web::Error>> {
     // Grab a non-blocking read lock and return the result as Json
     let a = req.state().school.read().unwrap();
     let ret = Json((*a).clone());
@@ -66,33 +68,32 @@ pub fn school_today(
 // the RwLock write handler
 pub fn adjust_school(
     (path, state): (Path<(String, u32)>, State<AppState>),
-) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
+) -> Box<Future<Item = Json<School>, Error = actix_web::Error>> {
     use self::Action::*;
     let action = Action::from_str(&path.0).unwrap();
     let id = path.1;
 
-    let mut a = state.school.write().unwrap();
+    {
+        // Grab a blocking write lock inside inner scope
+        let mut a = state.school.write().unwrap();
 
-    match action {
-        Toggle => (*a).toggle_kid(id),
-        AddExt => (*a).addext_kid(id),
-        Collect => (*a).collect_room(id),
+        // Perform the mutation
+        match action {
+            Toggle => (*a).toggle_kid(id),
+            AddExt => (*a).addext_kid(id),
+            Collect => (*a).collect_room(id),
+            Reset => {
+                reset_db().unwrap();
+                (*a) = init_db().unwrap();
+            }
+        }
+        // blocking lock is dropped here
     }
 
-    result(Ok(Json((*a).clone()))).responder()
-}
+    // grab a new non-blocking reader
+    let a = state.school.read().unwrap();
 
-// This was used if the user specifically asks to pick a different day
-// Leaving here in case they do actually want that option.
-// NOTE - this doesn't affect the AppState, so it wont work with persistence.
-// You need to have this replace the app state
-pub fn school(
-    day: Path<String>,
-) -> Box<Future<Item = Json<schema::School>, Error = actix_web::Error>> {
-    result(Ok(Json(
-        scrape_enrollment(
-            schema::Weekday::from_str(&day).expect("Unexpected day passed from URL"),
-            "current.xls",
-        ).unwrap(),
-    ))).responder()
+    // Sync the on-disk DB and return the json
+    write_db(&*a).unwrap();
+    result(Ok(Json((*a).clone()))).responder()
 }

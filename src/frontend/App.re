@@ -3,7 +3,6 @@ open Belt;
 open Types /* ReasonReact types */;
 
 type state =
-  | ChooseDay
   | Loading
   | Error
   | Loaded(school, string /* extended_config*/);
@@ -12,7 +11,7 @@ type action =
   | GetEnrollment(string) /* This is the day */
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
-  | ResetDay /* Toggle carries a kid payload, not just a name? */
+  | Reset /* Clear attendance data */
   | RoomCollected(school, classroom, string)
   | AddToExtended(school, kid, string)
   | ToggleExtendedConfig(school, string /* extended_config*/) /* Rigth now there are just two states, fall and summer. */
@@ -86,14 +85,13 @@ let make = _children => {
         Loaded(school, "F8" /* TODO - how will this work */),
       )
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
-    | ResetDay => ReasonReact.Update(ChooseDay)
-    | RoomCollected(school, room, extended_config) =>
-      ReasonReact.UpdateWithSideEffects(
-        Loaded(toggle_collected(school, room), extended_config) /* Assume it will work and flip in the frontend */,
+    | Reset =>
+    ReasonReact.UpdateWithSideEffects(
+        Loading,
         (
           self => {
             Js.Promise.(
-              Fetch.fetch("http://127.0.0.1:8080/collected/" ++ string_of_int(room.id))
+              Fetch.fetch("http://127.0.0.1:8080/reset/0"/* Trailing zero is ignored by the backend */)
               |> then_(Fetch.Response.json)
               |> then_(json =>
                    json
@@ -109,6 +107,28 @@ let make = _children => {
           }
         ),
       )
+    | RoomCollected(school, room, extended_config) =>
+    ReasonReact.UpdateWithSideEffects(
+      Loaded(toggle_collected(school, room), extended_config) /* Assume it will work and flip in the frontend */,
+      (
+        self => {
+          Js.Promise.(
+            Fetch.fetch("http://127.0.0.1:8080/collect/" ++ string_of_int(room.id))
+            |> then_(Fetch.Response.json)
+            |> then_(json =>
+                 json
+                 |> Decode.school
+                 |> (school => self.send(EnrollmentReceived(school)))
+                 |> resolve
+               )
+            |> catch(_err =>
+                 Js.Promise.resolve(self.send(EnrollmentReceived(school)))
+               )
+            |> ignore
+          );
+        }
+      ),
+    )
     | ToggleExtendedConfig(school, extended_config) =>
       ReasonReact.Update(
         Loaded(school, extended_config == "M8" ? "F8" : "M8"),
@@ -128,7 +148,7 @@ let make = _children => {
                    |> resolve
                  )
               |> catch(_err =>
-                   Js.Promise.resolve(self.send(EnrollmentFailedToGet))
+                   Js.Promise.resolve(self.send(EnrollmentReceived(school)))
                  )
               |> ignore
             );
@@ -150,7 +170,7 @@ let make = _children => {
                  |> resolve
                )
             |> catch(_err =>
-                 Js.Promise.resolve(self.send(EnrollmentFailedToGet))
+                 Js.Promise.resolve(self.send(EnrollmentReceived(school)))
                )
             |> ignore
           );
@@ -160,28 +180,6 @@ let make = _children => {
   },
   render: self =>
     switch (self.state) {
-    | ChooseDay =>
-      <div>
-        <h2> {ReasonReact.string("Please select day:")} </h2>
-        <br />
-        <div>
-          <button onClick=(_event => self.send(GetEnrollment("mon")))>
-            {ReasonReact.string("Monday")}
-          </button>
-          <button onClick=(_event => self.send(GetEnrollment("tue")))>
-            {ReasonReact.string("Tuesday")}
-          </button>
-          <button onClick=(_event => self.send(GetEnrollment("wed")))>
-            {ReasonReact.string("Wednesday")}
-          </button>
-          <button onClick=(_event => self.send(GetEnrollment("thu")))>
-            {ReasonReact.string("Thursday")}
-          </button>
-          <button onClick=(_event => self.send(GetEnrollment("fri")))>
-            {ReasonReact.string("Friday")}
-          </button>
-        </div>
-      </div>
     | Error =>
       <div>
         {
@@ -189,6 +187,8 @@ let make = _children => {
             "An error occured connecting to the backend.  Check the server log.",
           )
         }
+        <br/>
+        <button onClick=(_event => self.send(GetEnrollment("today")))>{ReasonReact.string("Try to reconnect")}</button>
       </div>
     | Loading => <div> {ReasonReact.string("Loading...")} </div>
     | Loaded(school, extended_config) =>
@@ -196,7 +196,7 @@ let make = _children => {
         <h1> {ReasonReact.string("Mifkad")} </h1>
         <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
         <hr />
-        <OutputViewer school extended_config />
+        <OutputViewer school extended_config refreshClicked=(_event => self.send(GetEnrollment("today"))) resetClicked=(_event => self.send(Reset))/>
         <hr />
         <Roster
           school
@@ -239,10 +239,6 @@ let make = _children => {
               "Switch to " ++ (extended_config == "M8" ? "fall" : "summer"),
             )
           }
-        </button>
-        {ReasonReact.string(" ")}
-        <button onClick=(_event => self.send(ResetDay))>
-          {ReasonReact.string("Pick a different day")}
         </button>
         <footer>
           <hr />

@@ -6,53 +6,55 @@ use calamine::{open_workbook, Reader, Xls};
 use chrono::prelude::{Date, Datelike, Local};
 use errors::{Result, ResultExt};
 use regex::Regex;
-use schema::{Classroom, Expected, Kid, School};
+use schema::{Classroom, Expected, Kid, School, Weekday};
 use serde_json;
 use std::{
-    fs::{create_dir, read_dir, File},
+    fs::{create_dir, read_dir, remove_file, File, OpenOptions},
     io::{
         prelude::{Read, Write},
-        BufReader,
+        BufReader, BufWriter,
     },
     path::{Path, PathBuf},
     str::FromStr,
 };
 
+lazy_static! {
+    // lazy_static facilitates the database file setup based on the current localtime system date at runtime
+
+    // Establish date
+    static ref TODAY: Date<Local> = Local::today();
+    // note - this is a schema::Weekday, not a chrono::Weekday
+    static ref WEEKDAY: Weekday = Weekday::from_str(&format!("{:?}", TODAY.weekday())).expect("Could not get a weekday from chrono");
+    static ref DAY_STR: String = format!("{}{}{}", TODAY.year(), TODAY.month(), TODAY.day());
+
+    // Paths are unlikely to change, so I'm hardcoding them.
+    static ref DB_FILE: PathBuf = {
+        let mut ret = PathBuf::new();
+        let mut s = String::from_str(&DAY_STR).unwrap();
+        s.push_str(".json");
+        ret.push(&s);
+        ret
+    };
+    static ref DB_FILE_STR: &'static str = DB_FILE.to_str().unwrap();
+    static ref DB_DIR: PathBuf = {
+        let mut ret = PathBuf::new();
+        ret.push("mifkad-assets");
+        ret.push("db");
+        ret
+    };
+    static ref DB_DIR_STR: &'static str = DB_DIR.to_str().unwrap();
+    static ref DB_FILEPATH: PathBuf = {
+        let mut ret = PathBuf::new();
+        ret.push(DB_DIR.to_str().unwrap());
+        ret.push(DB_FILE.to_str().unwrap());
+        ret
+    };
+    static ref DB_FILEPATH_STR: &'static str = DB_FILEPATH.to_str().unwrap();
+}
+
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
-pub fn init_db() -> Result<(schema::School)> {
-    lazy_static! {
-        // lazy_static facilitates the database file setup based on the current localtime system date at runtime
-
-        // Establish date
-        static ref TODAY: Date<Local> = Local::today();
-        // schema::Weekday only will ever be Mon-Fri, as opposed to chrono::Weekday
-        static ref WEEKDAY: schema::Weekday = schema::Weekday::from_str(&format!("{:?}", TODAY.weekday())).expect("Could not get a weekday from chrono");
-        static ref DAY_STR: String = format!("{}{}{}", TODAY.year(), TODAY.month(), TODAY.day());
-        // Paths are unlikely to change, so I'm hardcoding them.
-        static ref DB_FILE: PathBuf = {
-            let mut ret = PathBuf::new();
-            let mut s = String::from_str(&DAY_STR).unwrap();
-            s.push_str(".json");
-            ret.push(&s);
-            ret
-        };
-        static ref DB_FILE_STR: &'static str = DB_FILE.to_str().unwrap();
-        static ref DB_DIR: PathBuf = {
-            let mut ret = PathBuf::new();
-            ret.push("mifkad-assets");
-            ret.push("db");
-            ret
-        };
-        static ref DB_DIR_STR: &'static str = DB_DIR.to_str().unwrap();
-        static ref DB_FILEPATH: PathBuf = {
-            let mut ret = PathBuf::new();
-            ret.push(DB_DIR.to_str().unwrap());
-            ret.push(DB_FILE.to_str().unwrap());
-            ret
-        };
-        static ref DB_FILEPATH_STR: &'static str = DB_FILEPATH.to_str().unwrap();
-    }
+pub fn init_db() -> Result<(School)> {
     // Kid(id,name,classroom,date,expected,actual) might be a good idea if I ever go sql
     // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
 
@@ -110,9 +112,24 @@ pub fn init_db() -> Result<(schema::School)> {
     Ok(ret)
 }
 
+pub fn reset_db() -> Result<()> {
+    // Delete current file and replace it with a brand new copy
+    remove_file(*DB_FILEPATH_STR).chain_err(|| format!("Could not clear {}", *DB_FILE_STR))?;
+    let mut new_db =
+        File::create(*DB_FILEPATH_STR).chain_err(|| format!("Could not create {}", *DB_FILE_STR))?;
+    new_db
+        .write_all(
+            serde_json::to_string(&scrape_enrollment(*WEEKDAY, DATAFILE)?)
+                .chain_err(|| "Could not serialize school")?
+                .as_bytes(),
+        )
+        .chain_err(|| format!("Could not write data to {}", *DB_FILE_STR))?;
+    Ok(())
+}
+
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
-pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School> {
+pub fn scrape_enrollment(day: Weekday, file_str: &str) -> Result<School> {
     lazy_static! {
         // Define patterns to match
         static ref KID_RE: Regex =
@@ -235,16 +252,28 @@ pub fn scrape_enrollment(day: schema::Weekday, file_str: &str) -> Result<School>
     Ok(school)
 }
 
+pub fn write_db(school: &School) -> Result<()> {
+    // Open as writable - will overwrite contents
+    let f = OpenOptions::new()
+        .write(true)
+        .open(*DB_FILEPATH_STR)
+        .chain_err(|| "Could not open db file")?;
+    let out = serde_json::to_string(school).chain_err(|| "Could not serialize data structure")?;
+    let mut bfw = BufWriter::new(f);
+    bfw.write(out.as_bytes())
+        .chain_err(|| "Could not write out data structure")?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{schema, scrape_enrollment};
+    use super::{scrape_enrollment, Weekday};
     use std::str::FromStr;
 
     #[test]
     fn test_open_excel() {
         let school =
-            scrape_enrollment(schema::Weekday::from_str("mon").unwrap(), "sample/test.xls")
-                .unwrap();
+            scrape_enrollment(Weekday::from_str("mon").unwrap(), "sample/test.xls").unwrap();
         assert!(school.classrooms.len() > 0)
     }
 }

@@ -35,7 +35,8 @@ use actix_web::{
 };
 use data::init_db;
 use errors::{Result, ResultExt};
-use handlers::{adjust_school, index, school, school_today};
+use handlers::{adjust_school, index, school_today};
+use schema::School;
 use std::{
     env::{set_var, var},
     sync::{Arc, RwLock},
@@ -45,11 +46,11 @@ static DATAFILE: &str = "current.xls";
 
 // RwLock allows either multiple readers or a single writer, but not both
 pub struct AppState {
-    pub school: Arc<RwLock<schema::School>>,
+    pub school: Arc<RwLock<School>>,
 }
 
 impl AppState {
-    fn new(a: &Arc<RwLock<schema::School>>) -> Result<Self> {
+    fn new(a: &Arc<RwLock<School>>) -> Result<Self> {
         let school = Arc::clone(a);
         Ok(Self { school })
     }
@@ -98,13 +99,10 @@ fn run() -> Result<()> {
                 |app| {
                     Cors::for_app(app)
                         .send_wildcard()
-                        .allowed_methods(vec!["GET", "POST"])
-                        .allowed_header(http::header::CONTENT_TYPE)
+                        .allowed_methods(vec!["GET"])
                         .max_age(3600)
                         .resource("/", |r| r.route().a(index)) // a() registers an async handler, which returns a Box<Future<Item=impl Responder, actix_web::Error>>
                         .resource("/school/today", |r| r.method(http::Method::GET).a(school_today))
-                        // Mon||mon||monday, e.g. - this is vestigial and may be removed
-                        .resource("/school/{day}", |r| r.method(http::Method::GET).with(school))
                         .resource("/{action}/{id}", |r| r.method(http::Method::GET).with(adjust_school))
                         .register()
                 }

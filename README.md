@@ -2,13 +2,13 @@
 
 [![Build Status](https://travis-ci.org/deciduously/mifkad.svg?branch=master)](https://travis-ci.org/deciduously/mifkad)
 
-Attendance taking web app.
+Full-stack webapp for logging daily classroom attendance form an auto-generated enrollment report.  It stores state to disk on each click, so the current status is not affected by page reloads or app restarts except for the first run of each day.  You could have multiple connections open at once, but it will only notice changes other clients make if you change something or if you refresh....for now (maybe).
 
 ![demo data](https://i.imgur.com/kS8NW4o.png)
 
-This is a ReasonReact/actix_web rewrite of my prior [attendance](https://github.com/deciduously/attendance) Reagent/Rocket project, which can be considered deprecated.  There's still a lot of Clojure love, but pragmatism and all...
+This is rewrite of my prior [attendance](https://github.com/deciduously/attendance) ClojureScript project, which should be considered deprecated.
 
-This is not an app I expect will be useful to anyone but myself - the only reason I include such a thorough README is because it will likely need maintence about once a year, and I don't have nearly that attention span.
+The backend is built using the [`actix_web`](https://actix.rs) framework for [Rust](https://www.rust-lang.org/), and the frontend is buiilt with [ReasonReact](https://reasonml.github.io/reason-react/).
 
 ## Dependencies
 
@@ -47,6 +47,6 @@ yarn start
 
 I use `release-win.bat` to automate the release.  On Windows, I run `yarn prod:win` in WSL, then `yarn build:rs` natively, and then invoke the batchfile.
 
-Depending on your hardware, the backend may take quite some time to build - `actix_web` brings along with it a somewhat large set of crates that all need to be rebuilt after invoking `cargo clean`.  It's usually just shy of 3 minutes on my i7-8700 desktop, and closer to 10 on my old AMD APU A10-5750M laptop.  Personally, I've never been too bothered by hefty build times if the resulting executable is reasonably sized and highly performant, and the dev cycle is reasonable even on the laptop, as it doesn't clean everything and doesn't use optimizations.  `mifkad.exe` clocks in perhaps a tad larger than I'd like for the functionality but in the grand scheme of things, I'm not losing sleep over a 5MB executable that isn't getting transferred around a lot.  It starts up practically instantaneously - at least faster than any other application we use - even on the old hardware at work and barely sips on system resources, so I'm happy.
+Depending on your hardware, the backend may take quite some time to build in poroduction mode - `actix_web` brings along with it a somewhat large set of crates that all need to be rebuilt after invoking `cargo clean`.  The dev build is more reasonable.
 
 It expects an input file under `.\current.xls`. There's a sample at `sample\test.xls` with fudged data.  It intentionally has mismatched headers and things - that's how they come outta the big box, except for all the extraneous info I've removed - redacted, if I want to sound fancy.  And I do.  Rows or data in rows that aren't what I care about don't matter.
