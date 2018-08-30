@@ -2,13 +2,13 @@
 
 [![Build Status](https://travis-ci.org/deciduously/mifkad.svg?branch=master)](https://travis-ci.org/deciduously/mifkad)
 
-Full-stack webapp for logging daily classroom attendance form an auto-generated enrollment report.  It stores state to disk on each click, so the current status is not affected by page reloads or app restarts except for the first run of each day.  You could have multiple connections open at once, but it will only notice changes other clients make if you change something or if you refresh....for now (maybe).
+Full-stack webapp for logging daily classroom attendance using an auto-generated enrollment Excel sheet as input.  It stores state to disk on each click, so the current status is not affected by page reloads or app restarts except for the first run of each day.
 
 ![demo data](https://i.imgur.com/kS8NW4o.png)
 
 This is rewrite of my prior [attendance](https://github.com/deciduously/attendance) ClojureScript project, which should be considered deprecated.
 
-The backend is built using the [`actix_web`](https://actix.rs) framework for [Rust](https://www.rust-lang.org/), and the frontend is buiilt with [ReasonReact](https://reasonml.github.io/reason-react/).
+The backend is built using the [`actix_web`](https://actix.rs) framework for [Rust](https://www.rust-lang.org/), and the frontend is built with [ReasonReact](https://reasonml.github.io/reason-react/).
 
 ## Dependencies
 
