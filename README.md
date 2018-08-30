@@ -4,7 +4,7 @@
 
 Full-stack webapp for logging daily classroom attendance using an auto-generated enrollment Excel sheet as input.  It stores state to disk on each click, so the current status is not affected by page reloads or app restarts except for the first run of each day.
 
-![demo data](https://i.imgur.com/kS8NW4o.png)
+![demo data](https://i.imgur.com/zgwpnkQ.png)
 
 This is rewrite of my prior [attendance](https://github.com/deciduously/attendance) ClojureScript project, which should be considered deprecated.
 
