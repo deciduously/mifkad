@@ -2,7 +2,7 @@
 
 /* payload types to match types in /src/schema.rs */
 
-/* type expected = Core | Extended | Unscheduled; */
+/* TODO type expected = Core | Extended | Unscheduled; */
 
 /* External JS function used in download feature */
 [@bs.val] external btoa: string => string = "btoa";
@@ -62,7 +62,7 @@ let get_extended_letter_F8 = letter =>
   /* Fall '18 config */
   switch (letter) {
   | "A"
-  | "C" => "CE"
+  | "C" => "AE"
   | "B"
   | "D" => "DE"
   | "E"
@@ -75,7 +75,7 @@ let get_extended_letter_F8 = letter =>
   | "L"
   | "M"
   | "N"
-  | "O" => "ME"
+  | "O" => "LE"
   | _ => "ERR!!!"
   };
 
