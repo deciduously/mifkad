@@ -115,15 +115,14 @@ pub fn init_db() -> Result<(School)> {
 pub fn reset_db() -> Result<()> {
     // Delete current file and replace it with a brand new copy
     remove_file(*DB_FILEPATH_STR).chain_err(|| format!("Could not clear {}", *DB_FILE_STR))?;
-    let mut new_db =
-        File::create(*DB_FILEPATH_STR).chain_err(|| format!("Could not create {}", *DB_FILE_STR))?;
+    let mut new_db = File::create(*DB_FILEPATH_STR)
+        .chain_err(|| format!("Could not create {}", *DB_FILE_STR))?;
     new_db
         .write_all(
             serde_json::to_string(&scrape_enrollment(*WEEKDAY, DATAFILE)?)
                 .chain_err(|| "Could not serialize school")?
                 .as_bytes(),
-        )
-        .chain_err(|| format!("Could not write data to {}", *DB_FILE_STR))?;
+        ).chain_err(|| format!("Could not write data to {}", *DB_FILE_STR))?;
     Ok(())
 }
 

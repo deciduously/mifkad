@@ -15,11 +15,10 @@ let make =
   ...component,
   render: _self =>
     <div className="roster">
-      <ul className="classList">
         {
           Array.map(
             classroom =>
-              <li key={classroom.letter} className="room">
+              <div key={classroom.letter} className="room">
                 <Room
                   room=classroom
                   kidClicked
@@ -27,11 +26,10 @@ let make =
                   collectedClicked
                   core
                 />
-              </li>,
+              </div>,
             school.classrooms,
           )
           |> ReasonReact.array
         }
-      </ul>
     </div>,
 };
