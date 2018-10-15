@@ -13,7 +13,7 @@
 mifkad.exe
 /release
 
-current.xls
+current*.xls
 yarn-error.log
 **/.#*
 **/.~*
