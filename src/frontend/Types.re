@@ -133,7 +133,7 @@ let add_extended_room = (school, classroom) => {
       /* We've already seen this letter - mash the new kid list into the matching existing kid list */
       let old_classroom = school.classrooms[idx^];
       let new_classroom = {
-        ...classroom,
+        ...old_classroom,
         kids: ref(Array.append(old_classroom.kids^, classroom.kids^)),
       };
       target^[idx^] = new_classroom;
