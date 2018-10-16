@@ -24,6 +24,7 @@ let kid = kid: string =>
 let classroom = classroom: string => {
   let kidlist =
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
+  let actual_headcount = string_of_int(List.length(List.filter(k => k.schedule.actual, Array.to_list(classroom.kids^))));
   "Room "
   ++ classroom.letter
   ++ ": "  /* Check if empty, and if it's not empty, trim off the trailing comma */
@@ -31,6 +32,7 @@ let classroom = classroom: string => {
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"
   )
+  ++ " (" ++ actual_headcount ++ "/" ++ string_of_int(classroom.capacity) ++ ")"
   ++ "\r\n";
 };
 
