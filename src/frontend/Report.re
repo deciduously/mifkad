@@ -114,15 +114,7 @@ let ext_attendance_str = school =>
     school.classrooms,
   );
 
-let date = [%raw
-  {|
-    function() {
-      var d = new Date();
-      var s = d.toLocaleDateString();
-      return s;
-    }
-  |}
-];
+let date = Js.Date.toLocaleDateString(Js.Date.make());
 
 let ext_attendance_preview = (school, extended_config) => {
   let ext = get_extended_rooms(school, extended_config);
@@ -131,7 +123,7 @@ let ext_attendance_preview = (school, extended_config) => {
     <br />
     {
       ReasonReact.string(
-        "Here are your extended day numbers for " ++ date() ++ ":",
+        "Here are your extended day numbers for " ++ date ++ ":",
       )
     }
     <br />
@@ -155,7 +147,7 @@ let school = (school, extended_config): string =>
   uncollected(school)
   ++ core_attendance_str(school)
   ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "
-  ++ date()
+  ++ date
   ++ ":\r\n\r\n"
   ++ ext_attendance_str(get_extended_rooms(school, extended_config))
   ++ "\r\nThanks,\r\n";
