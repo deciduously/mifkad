@@ -79,6 +79,21 @@ let get_extended_letter_F8 = letter =>
   | _ => "ERR!!!"
   };
 
+/* So, it turns out I can't just figure these out cleverly in the fold operation
+*  I have to hardcode them - the school wants more specific needs and I don't see any way to generate their arbitrary ones from the input data.
+* The database has no concept of "extended day", that's an arbitrary ops thing
+* So I'm hardcoding the values they want.  Meh
+*/
+let get_extended_capacity = ext_room =>
+  switch (ext_room) {
+  | "AE" => 7
+  | "DE" => 9
+  | "EE" => 9
+  | "IE" => 14
+  | "LE" => 20
+  | _ => 20 /* Really ERR but this is the max class size available */
+  };
+
 let get_extended_kids = (school, extended_config) =>
   /* Returns a school with only the Extended Day kids */
   {
@@ -134,6 +149,7 @@ let add_extended_room = (school, classroom) => {
       let old_classroom = school.classrooms[idx^];
       let new_classroom = {
         ...old_classroom,
+        capacity: get_extended_capacity(classroom.letter),
         kids: ref(Array.append(old_classroom.kids^, classroom.kids^)),
       };
       target^[idx^] = new_classroom;
