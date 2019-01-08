@@ -240,6 +240,8 @@ let make = _children => {
             )
           }
         </button>
+        <hr />
+        <ExtendedDay config=extended_config_F8 />
         <footer>
           <hr />
           {ReasonReact.string("mifkad v0.2.4 \xA9 2018 Ben Lovy - ")}

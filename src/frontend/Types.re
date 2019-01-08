@@ -40,6 +40,17 @@ let get_uncollected_rooms = school =>
     List.filter(r => !r.collected, Array.to_list(school.classrooms)),
   );
 
+type extended_config = array((string, array(string)))
+
+let extended_config_F8 =
+  [|
+    ("AE", [|"A", "C"|]),
+    ("DE", [|"B", "D"|]),
+    ("EE", [|"E", "F", "G"|]),
+    ("IE", [|"J", "K", "H", "I"|]),
+    ("LE", [|"L", "M", "N", "O"|])
+  |]
+
 let get_extended_letter_M8 = letter =>
   /* Summer '18 config */
   switch (letter) {
