@@ -10,7 +10,7 @@ path = "src/backend/main.rs"
 [dependencies]
 actix = "0.7"
 actix-web = "0.7"
-calamine = "0.14"
+calamine = "0.15"
 chrono = "0.4"
 error-chain = "0.12"
 futures = "0.1"

@@ -23,17 +23,17 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
     "reason-react": "^0.5.3"
   },
   "devDependencies": {
     "@glennsl/bs-json": "^3.0.0",
     "bs-fetch": "^0.3.1",
-    "bs-platform": "^4.0.8",
-    "css-loader": "^2.0.0",
+    "bs-platform": "^4.0.17",
+    "css-loader": "^2.1.0",
     "npm-run-all": "^4.1.5",
-    "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2"
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.2.1"
   }
 }
