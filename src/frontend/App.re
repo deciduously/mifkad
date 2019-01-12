@@ -5,18 +5,17 @@ open Types /* ReasonReact types */;
 type state =
   | Loading
   | Error
-  | Loaded(school, string /* extended_config*/);
+  | Loaded(school, extended_config);
 
 type action =
   | GetEnrollment(string) /* This is the day */
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
   | Reset /* Clear attendance data */
-  | RoomCollected(school, classroom, string)
-  | AddToExtended(school, kid, string)
-  | RemoveExtRoom(school, string, string)
-  | ToggleExtendedConfig(school, string /* extended_config*/) /* Rigth now there are just two states, fall and summer. */
-  | Toggle(school, kid, string);
+  | RoomCollected(school, classroom, extended_config)
+  | AddToExtended(school, kid, extended_config)
+  | RemoveExtRoom(school, string, extended_config)
+  | Toggle(school, kid, extended_config);
 
 module Decode = {
   let day = json: day =>
@@ -83,7 +82,7 @@ let make = _children => {
       )
     | EnrollmentReceived(school) =>
       ReasonReact.Update(
-        Loaded(school, "F8" /* TODO - how will this work */),
+        Loaded(school, extended_config_F8),
       )
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | Reset =>
@@ -130,10 +129,6 @@ let make = _children => {
         }
       ),
     )
-    | ToggleExtendedConfig(school, extended_config) =>
-      ReasonReact.Update(
-        Loaded(school, extended_config == "M8" ? "F8" : "M8"),
-      )
     | AddToExtended(school, kid, extended_config) =>
       ReasonReact.UpdateWithSideEffects(
         Loaded(toggle_extended(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
@@ -221,27 +216,6 @@ let make = _children => {
           collectedClicked=(_event => ())
           core=false
         />
-        <hr />
-        <span>
-          {
-            ReasonReact.string(
-              "Extended day config: "
-              ++ (extended_config == "M8" ? "summer" : "fall"),
-            )
-          }
-        </span>
-        <br />
-        <button
-          onClick=(
-            _event =>
-              self.send(ToggleExtendedConfig(school, extended_config))
-          )>
-          {
-            ReasonReact.string(
-              "Switch to " ++ (extended_config == "M8" ? "fall" : "summer"),
-            )
-          }
-        </button>
         <hr />
         <ExtendedDay config=extended_config_F8 removeExtRoomClicked=(event => self.send(RemoveExtRoom(school, event, extended_config))) />
         <footer>

@@ -55,45 +55,6 @@ let get_extended_letter = (letter, extended_config) =>
   /* Grab the extended letter from the config */
   fst(List.hd(List.filter(entry => List.fold_left((acc, l) => acc || l == letter, false, snd(entry)), extended_config)))
 
-let get_extended_letter_M8 = letter =>
-  /* Summer '18 config */
-  switch (letter) {
-  | "A" => "AE"
-  | "C" => "CE"
-  | "B"
-  | "D" => "DE"
-  | "E"
-  | "F"
-  | "G" => "EE"
-  | "I"
-  | "J"
-  | "K" => "JE"
-  | "N"
-  | "O" => "NE"
-  | _ => "ERR!!!"
-  };
-
-let get_extended_letter_F8 = letter =>
-  /* Fall '18 config */
-  switch (letter) {
-  | "A"
-  | "C" => "AE"
-  | "B"
-  | "D" => "DE"
-  | "E"
-  | "F"
-  | "G" => "EE"
-  | "J"
-  | "K"
-  | "H"
-  | "I" => "IE"
-  | "L"
-  | "M"
-  | "N"
-  | "O" => "LE"
-  | _ => "ERR!!!"
-  };
-
 /* So, it turns out I can't just figure these out cleverly in the fold operation
 *  I have to hardcode them - the school wants more specific needs and I don't see any way to generate their arbitrary ones from the input data.
 * The database has no concept of "extended day", that's an arbitrary ops thing
@@ -118,12 +79,7 @@ let get_extended_kids = (school, extended_config) =>
       Array.map(
         r => {
           ...r,
-          letter:
-            switch (extended_config) {
-            | "M8" => get_extended_letter_M8(r.letter)
-            | "F8" => get_extended_letter_F8(r.letter)
-            | _ => "ERR!!!"
-            },
+          letter: get_extended_letter(r.letter, extended_config),
           kids:
             ref(
               Array.of_list(
