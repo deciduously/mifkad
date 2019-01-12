@@ -14,6 +14,7 @@ type action =
   | Reset /* Clear attendance data */
   | RoomCollected(school, classroom, string)
   | AddToExtended(school, kid, string)
+  | RemoveExtRoom(school, string, string)
   | ToggleExtendedConfig(school, string /* extended_config*/) /* Rigth now there are just two states, fall and summer. */
   | Toggle(school, kid, string);
 
@@ -155,7 +156,8 @@ let make = _children => {
           }
         ),
       )
-    | Toggle(school, kid, extended_config) =>
+      | RemoveExtRoom(school, extroom, extended_config) => ReasonReact.Update(Loaded(school,extended_config))
+      | Toggle(school, kid, extended_config) =>
     ReasonReact.UpdateWithSideEffects(
       Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
       (
@@ -241,7 +243,7 @@ let make = _children => {
           }
         </button>
         <hr />
-        <ExtendedDay config=extended_config_F8 />
+        <ExtendedDay config=extended_config_F8 removeExtRoomClicked=(event => self.send(RemoveExtRoom(school, event, extended_config))) />
         <footer>
           <hr />
           {ReasonReact.string("mifkad v0.2.4 \xA9 2018 Ben Lovy - ")}

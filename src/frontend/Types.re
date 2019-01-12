@@ -40,16 +40,20 @@ let get_uncollected_rooms = school =>
     List.filter(r => !r.collected, Array.to_list(school.classrooms)),
   );
 
-type extended_config = array((string, array(string)))
+type extended_config = list((string, list(string)))
 
 let extended_config_F8 =
-  [|
-    ("AE", [|"A", "C"|]),
-    ("DE", [|"B", "D"|]),
-    ("EE", [|"E", "F", "G"|]),
-    ("IE", [|"J", "K", "H", "I"|]),
-    ("LE", [|"L", "M", "N", "O"|])
-  |]
+  [
+    ("AE", ["A", "C"]),
+    ("DE", ["B", "D"]),
+    ("EE", ["E", "F", "G"]),
+    ("IE", ["J", "K", "H", "I"]),
+    ("LE", ["L", "M", "N", "O"])
+  ]
+
+let get_extended_letter = (letter, extended_config) =>
+  /* Grab the extended letter from the config */
+  fst(List.hd(List.filter(entry => List.fold_left((acc, l) => acc || l == letter, false, snd(entry)), extended_config)))
 
 let get_extended_letter_M8 = letter =>
   /* Summer '18 config */
@@ -107,6 +111,7 @@ let get_extended_capacity = ext_room =>
 
 let get_extended_kids = (school, extended_config) =>
   /* Returns a school with only the Extended Day kids */
+  /* This is stop one - make it work with the new format */
   {
     ...school,
     classrooms:

@@ -9,12 +9,18 @@ let component = ReasonReact.statelessComponent("ExtendedDay");
 *  You also need to change the rendering part to use this config format instead of the mapping fn
 */
 
-let make = (~config: extended_config, _children) => {
-  ...component,
-  render: _self =>
+let make = (~config: extended_config, ~removeExtRoomClicked, _children) => {
+  {...component,
+  render: _self => 
     <ul className="extendedday">
       {
-        Array.map(extroom => <li key=fst(extroom)>{ReasonReact.string(fst(extroom))}</li>, config) |> ReasonReact.array
+        Array.of_list(List.map(extroom =>{
+          let extroom_letter = fst(extroom);
+          <li key=extroom_letter>
+            {ReasonReact.string(extroom_letter)}
+            <button onClick=(_event => removeExtRoomClicked(extroom_letter))>{ReasonReact.string("Remove")}</button>
+          </li>}, config))
+        |> ReasonReact.array
       }
-    </ul>,
+    </ul>,}
 };
