@@ -53,7 +53,6 @@ let make =
               }
               onKeyDown={event =>
                 if (ReactEvent.Keyboard.key(event) == "Enter") {
-                  /* TODO - check for duplicate, check for empty */
                   addExtRoomClicked(text);
                   send("XE");
                 }

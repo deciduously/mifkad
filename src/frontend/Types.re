@@ -55,7 +55,10 @@ let contains = (list, target) =>
   List.fold_left((acc, el) => acc || el == target, false, list);
 
 let add_extended_letter = (letter, extended_config) =>
-  if (contains(List.map(fst, extended_config), letter)) {
+  if (letter == "") {
+    alert("New class name was empty!");
+    extended_config;
+  } else if (contains(List.map(fst, extended_config), letter)) {
     alert("Already exists!");
     extended_config;
   } else {
