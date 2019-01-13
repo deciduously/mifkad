@@ -5,19 +5,20 @@ open Types;
 type state =
   | Loading
   | Error
-  | Loaded(school, extended_config);
+  | Loaded(school);
 
 type action =
   | GetEnrollment(string) /* This is the day */
   | EnrollmentReceived(school)
   | EnrollmentFailedToGet
   | Reset /* Clear attendance data */
-  | RoomCollected(school, classroom, extended_config)
-  | AdjExtRoom(string, string, school, extended_config)
-  | AddToExtended(school, kid, extended_config)
-  | AddExtRoom(school, string, extended_config)
-  | RemoveExtRoom(school, string, extended_config)
-  | Toggle(school, kid, extended_config);
+  | RoomCollected(school, classroom)
+  | AdjExtRoom(string, string, school)
+  | AddToExtended(school, kid)
+  | AddExtRoom(school, string)
+  | RemoveExtRoom(school, string)
+  | SaveExtConfig(school)
+  | Toggle(school, kid);
 
 module Decode = {
   let day = (json): day =>
@@ -43,9 +44,29 @@ module Decode = {
         ref(json |> field("kids", array(kid)) |> Array.map(_, kid => kid)),
     };
 
+  let extended_day_entry = (json): extended_day_entry =>
+    Json.Decode.{
+      letter: json |> field("letter", string),
+      capacity: json |> field("capacity", int),
+      members:
+        json
+        |> field("members", array(string))
+        |> Array.map(_, member => member),
+    };
+
+  let extended_day_config = (json): extended_day_config =>
+    Json.Decode.{
+      entries:
+        json
+        |> field("entries", array(extended_day_entry))
+        |> Array.map(_, extended_day_entry => extended_day_entry),
+    };
+
   let school = (json): school =>
     Json.Decode.{
       weekday: json |> field("weekday", string),
+      extended_day_config:
+        json |> field("extended_day_config", extended_day_config),
       classrooms:
         json
         |> field("classrooms", array(classroom))
@@ -80,8 +101,7 @@ let make = _children => {
             |> ignore
           ),
       )
-    | EnrollmentReceived(school) =>
-      ReasonReact.Update(Loaded(school, extended_config_F8))
+    | EnrollmentReceived(school) => ReasonReact.Update(Loaded(school))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | Reset =>
       ReasonReact.UpdateWithSideEffects(
@@ -104,9 +124,9 @@ let make = _children => {
             |> ignore
           ),
       )
-    | RoomCollected(school, room, extended_config) =>
+    | RoomCollected(school, room) =>
       ReasonReact.UpdateWithSideEffects(
-        Loaded(toggle_collected(school, room), extended_config) /* Assume it will work and flip in the frontend */,
+        Loaded(toggle_collected(school, room)) /* Assume it will work and flip in the frontend */,
         self =>
           Js.Promise.(
             Fetch.fetch(
@@ -125,9 +145,9 @@ let make = _children => {
             |> ignore
           ),
       )
-    | AddToExtended(school, kid, extended_config) =>
+    | AddToExtended(school, kid) =>
       ReasonReact.UpdateWithSideEffects(
-        Loaded(toggle_extended(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        Loaded(toggle_extended(school, kid)) /* Assume it will work and flip in the frontend */,
         self =>
           Js.Promise.(
             Fetch.fetch(
@@ -146,24 +166,40 @@ let make = _children => {
             |> ignore
           ),
       )
-    | AdjExtRoom(letter, target, school, extended_config) =>
+    | AdjExtRoom(letter, target, school) =>
       ReasonReact.Update(
-        Loaded(
-          school,
-          adjust_extended_config(letter, target, extended_config),
-        ),
+        Loaded({
+          ...school,
+          extended_day_config:
+            adjust_extended_config(
+              letter,
+              target,
+              school.extended_day_config,
+            ),
+        }),
       )
-    | AddExtRoom(school, extroom, extended_config) =>
+    | AddExtRoom(school, extroom) =>
       ReasonReact.Update(
-        Loaded(school, add_extended_letter(extroom, extended_config)),
+        Loaded({
+          ...school,
+          extended_day_config:
+            add_extended_letter(extroom, school.extended_day_config),
+        }),
       )
-    | RemoveExtRoom(school, extroom, extended_config) =>
+    | RemoveExtRoom(school, extroom) =>
       ReasonReact.Update(
-        Loaded(school, remove_extended_letter(extroom, extended_config)),
+        Loaded({
+          ...school,
+          extended_day_config:
+            remove_extended_letter(extroom, school.extended_day_config),
+        }),
       )
-    | Toggle(school, kid, extended_config) =>
+    | SaveExtConfig(school) =>
+      alert("Saving...");
+      ReasonReact.Update(Loaded(school));
+    | Toggle(school, kid) =>
       ReasonReact.UpdateWithSideEffects(
-        Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        Loaded(toggle(school, kid)) /* Assume it will work and flip in the frontend */,
         self =>
           Js.Promise.(
             Fetch.fetch(
@@ -196,34 +232,27 @@ let make = _children => {
         </button>
       </div>
     | Loading => <div> {ReasonReact.string("Loading...")} </div>
-    | Loaded(school, extended_config) =>
+    | Loaded(school) =>
       <div id="app">
         <h1> {ReasonReact.string("Mifkad")} </h1>
         <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
         <hr />
         <OutputViewer
           school
-          extended_config
           refreshClicked={_event => self.send(GetEnrollment("today"))}
           resetClicked={_event => self.send(Reset)}
         />
         <hr />
         <Roster
           school
-          kidClicked={event =>
-            self.send(Toggle(school, event, extended_config))
-          }
-          addextClicked={event =>
-            self.send(AddToExtended(school, event, extended_config))
-          }
-          collectedClicked={event =>
-            self.send(RoomCollected(school, event, extended_config))
-          }
+          kidClicked={event => self.send(Toggle(school, event))}
+          addextClicked={event => self.send(AddToExtended(school, event))}
+          collectedClicked={event => self.send(RoomCollected(school, event))}
           core=true
         /> /* core=true means it'll render toggleable buttons */
         <hr />
         <Roster
-          school={get_extended_rooms(school, extended_config)}
+          school={get_extended_rooms(school)}
           kidClicked={_event => ()}
           addextClicked={_event => ()}
           collectedClicked={_event => ()}
@@ -232,20 +261,18 @@ let make = _children => {
         <hr />
         <ExtendedDay
           school
-          extended_config
           adjExtRoomFired={(letter, target) =>
-            self.send(AdjExtRoom(letter, target, school, extended_config))
+            self.send(AdjExtRoom(letter, target, school))
           }
-          addExtRoomClicked={event =>
-            self.send(AddExtRoom(school, event, extended_config))
-          }
+          addExtRoomClicked={event => self.send(AddExtRoom(school, event))}
+          saveExtConfigClicked={_event => self.send(SaveExtConfig(school))}
           removeExtRoomClicked={event =>
-            self.send(RemoveExtRoom(school, event, extended_config))
+            self.send(RemoveExtRoom(school, event))
           }
         />
         <footer>
           <hr />
-          {ReasonReact.string("mifkad v0.2.4 \xA9 2018 Ben Lovy - ")}
+          {ReasonReact.string("mifkad v0.2.4 \xA9 2019 Ben Lovy - ")}
           <a href="https://github.com/deciduously/mifkad">
             {ReasonReact.string("source")}
           </a>

@@ -9,7 +9,7 @@ let to_fmt_name = name => {
   let idx_of_spc = String.index(name, ' ');
 
   let first_name =
-    String.sub(name, 0, idx_of_spc) /* start_idx, len */
+    String.sub(name, 0, idx_of_spc)  /* start_idx, len */
     |> String.lowercase
     |> String.capitalize;
 
@@ -18,10 +18,10 @@ let to_fmt_name = name => {
   first_name ++ " " ++ last_initial ++ ".";
 };
 
-let kid = kid: string =>
+let kid = (kid): string =>
   kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", ";
 
-let classroom = classroom: string => {
+let classroom = (classroom): string => {
   let kidlist =
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   let actual_headcount =
@@ -36,7 +36,7 @@ let classroom = classroom: string => {
     );
   "Room "
   ++ classroom.letter
-  ++ ": " /* Check if empty, and if it's not empty, trim off the trailing comma */
+  ++ ": "  /* Check if empty, and if it's not empty, trim off the trailing comma */
   ++ (
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"
@@ -53,7 +53,7 @@ let trim_trailing = s =>
   /* Trims the trailing comma and space that happens when we grab our kid list strings */
   String.sub(s, 0, String.length(s) - 2);
 
-let ext_classroom = classroom: string => {
+let ext_classroom = (classroom): string => {
   let absent_kids =
     Array.fold_left(
       (acc, k) =>
@@ -112,7 +112,7 @@ let core_attendance_str = school =>
 
 let core_attendance_preview = school =>
   Array.map(
-    c =>
+    (c: classroom) =>
       <li key={c.letter ++ "pre"}> {ReasonReact.string(classroom(c))} </li>,
     school.classrooms,
   )
@@ -127,38 +127,34 @@ let ext_attendance_str = school =>
 
 let date = Js.Date.toLocaleDateString(Js.Date.make());
 
-let ext_attendance_preview = (school, extended_config) => {
-  let ext = get_extended_rooms(school, extended_config);
+let ext_attendance_preview = school => {
+  let ext = get_extended_rooms(school);
   <div>
     {ReasonReact.string("Hi Everyone,")}
     <br />
-    {
-      ReasonReact.string(
-        "Here are your extended day numbers for " ++ date ++ ":",
-      )
-    }
+    {ReasonReact.string(
+       "Here are your extended day numbers for " ++ date ++ ":",
+     )}
     <br />
     <br />
-    {
-      Array.map(
-        c =>
-          <li key={c.letter ++ "pre"}>
-            {ReasonReact.string(ext_classroom(c))}
-          </li>,
-        ext.classrooms,
-      )
-      |> ReasonReact.array
-    }
+    {Array.map(
+       (c: classroom) =>
+         <li key={c.letter ++ "pre"}>
+           {ReasonReact.string(ext_classroom(c))}
+         </li>,
+       ext.classrooms,
+     )
+     |> ReasonReact.array}
     <br />
     {ReasonReact.string("Thanks,")}
   </div>;
 };
 
-let school = (school, extended_config): string =>
+let school = (school): string =>
   uncollected(school)
   ++ core_attendance_str(school)
   ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "
   ++ date
   ++ ":\r\n\r\n"
-  ++ ext_attendance_str(get_extended_rooms(school, extended_config))
+  ++ ext_attendance_str(get_extended_rooms(school))
   ++ "\r\nThanks,\r\n";

@@ -28,90 +28,131 @@ type classroom = {
   kids: ref(array(kid)),
 };
 
+type extended_day_entry = {
+  letter: string,
+  capacity: int,
+  members: array(string),
+};
+
+type extended_day_config = {entries: array(extended_day_entry)};
+
 type school = {
   classrooms: array(classroom),
+  extended_day_config,
   weekday: string,
 };
 
 let get_uncollected_rooms = school =>
   /* Returns the letters of rooms havent been marked complete as a string */
-  List.fold_left(
-    (s, r) => s ++ r.letter ++ " ",
-    "",
-    List.filter(r => !r.collected, Array.to_list(school.classrooms)),
-  );
+  school.classrooms
+  |> Array.to_list
+  |> List.filter(r => !r.collected)
+  |> List.fold_left((s, r: classroom) => s ++ r.letter ++ " ", "");
 
-type extended_config = list((string, list(string)));
-
-let extended_config_F8 = [
-  ("AE", ["A", "C"]),
-  ("DE", ["B", "D"]),
-  ("EE", ["E", "F", "G"]),
-  ("IE", ["J", "K", "H", "I"]),
-  ("LE", ["L", "M", "N", "O"]) /* This is a placeholder - it will come from the backend, this should be removed */,
-];
+let new_extended_day_entry = letter => {letter, capacity: 0, members: [||]};
 
 let contains = (list, target) =>
+  /* Does target appear in list? */
   List.fold_left((acc, el) => acc || el == target, false, list);
 
-let add_extended_letter = (letter, extended_config) =>
+let add_extended_letter = (letter, extended_config): extended_day_config =>
   if (letter == "") {
     alert("New class name was empty!");
     extended_config;
-  } else if (contains(List.map(fst, extended_config), letter)) {
+  } else if (contains(
+               List.map(
+                 el => el.letter,
+                 Array.to_list(extended_config.entries),
+               ),
+               letter,
+             )) {
     alert("Already exists!");
     extended_config;
   } else {
-    List.sort(compare, [(letter, []), ...extended_config]);
+    {
+      entries:
+        Array.append(
+          Array.make(1, new_extended_day_entry(letter)),
+          extended_config.entries,
+        )
+        |> Array.to_list
+        |> List.sort(compare)
+        |> Array.of_list,
+    };
   };
 
-let remove_extended_letter = (letter, extended_config) =>
-  List.filter(entry => fst(entry) != letter, extended_config);
+let remove_extended_letter = (letter, extended_config) => {
+  entries:
+    Array.of_list(
+      List.filter(
+        entry => entry.letter != letter,
+        Array.to_list(extended_config.entries),
+      ),
+    ),
+};
+
+let get_extended_capacity = (letter, extended_config) => {
+  /* Assumes letter is found in extended_config  - TODO */
+  let matches =
+    List.filter(
+      entry => entry.letter == letter,
+      Array.to_list(extended_config.entries),
+    );
+  List.length(matches) > 0 ? List.hd(matches).capacity : 0;
+};
 
 let get_extended_letter = (letter, extended_config) => {
   /* Grab the extended letter from the config */
   let matches =
-    List.filter(entry => contains(snd(entry), letter), extended_config);
-  List.length(matches) > 0 ? matches |> List.hd |> fst : "Unassigned";
+    List.filter(
+      entry => contains(Array.to_list(entry.members), letter),
+      Array.to_list(extended_config.entries),
+    );
+  List.length(matches) > 0 ? List.hd(matches).letter : "Unassigned";
 };
 
 let adjust_extended_config = (letter, target, extended_config) =>
-  /* Returns a new extended_config with "letter" removed from existing entry and added to target entry */
-  List.map(
-    entry =>
-      if (contains(snd(entry), letter)) {
-        (fst(entry), List.filter(el => el != letter, snd(entry)));
-      } else if (fst(entry) == target) {
-        (fst(entry), [letter, ...snd(entry)]);
-      } else {
-        entry;
-      },
-    extended_config,
-  );
-
-/*
- * What you should really do is include it in the ext_config - e.g. (("AE", 7), ["A", "C"])
- */
-let get_extended_capacity = ext_room =>
-  switch (ext_room) {
-  | "AE" => 7
-  | "DE" => 9
-  | "EE" => 9
-  | "IE" => 14
-  | "LE" => 20
-  | _ => 20 /* Really ERR but this is the max class size available */
+  /* Returns a new extended_day_config with "letter" removed from existing entry and added to target entry */
+  {
+    entries:
+      List.map(
+        entry =>
+          if (contains(Array.to_list(entry.members), letter)) {
+            {
+              letter: entry.letter,
+              capacity: entry.capacity,
+              members:
+                Array.of_list(
+                  List.filter(
+                    el => el != letter,
+                    Array.to_list(entry.members),
+                  ),
+                ),
+            };
+          } else if (entry.letter == target) {
+            {
+              letter: entry.letter,
+              capacity: entry.capacity,
+              members: Array.append([|letter|], entry.members),
+            };
+          } else {
+            entry;
+          },
+        Array.to_list(extended_config.entries),
+      )
+      |> Array.of_list,
   };
 
-let get_extended_kids = (school, extended_config) =>
+let get_extended_kids = school =>
   /* Returns a school with only the Extended Day kids */
   {
     ...school,
     classrooms:
       Array.map(
-        r =>
+        (r: classroom) =>
           {
             ...r,
-            letter: get_extended_letter(r.letter, extended_config),
+            letter: get_extended_letter(r.letter, school.extended_day_config),
             kids:
               ref(
                 Array.of_list(
@@ -137,7 +178,8 @@ let add_extended_room = (school, classroom) => {
   if (Array.length(target^) == 0) {
     target := Array.append(target^, Array.make(1, classroom));
   } else {
-    let already_included = Array.map(oldr => oldr.letter, school.classrooms);
+    let already_included =
+      Array.map((oldr: classroom) => oldr.letter, school.classrooms);
     let found = ref(false);
     let idx = ref(0) /* This will only be read later if found is toggled to true*/;
     Array.iteri(
@@ -153,7 +195,8 @@ let add_extended_room = (school, classroom) => {
       let old_classroom = school.classrooms[idx^];
       let new_classroom = {
         ...old_classroom,
-        capacity: get_extended_capacity(classroom.letter),
+        capacity:
+          get_extended_capacity(classroom.letter, school.extended_day_config),
         kids: ref(Array.append(old_classroom.kids^, classroom.kids^)),
       };
       target^[idx^] = new_classroom;
@@ -166,9 +209,9 @@ let add_extended_room = (school, classroom) => {
   {...school, classrooms: target^};
 };
 
-let get_extended_rooms = (school, extended_config) => {
+let get_extended_rooms = school => {
   /* Returns a `school` of the extended kids */
-  let s = get_extended_kids(school, extended_config);
+  let s = get_extended_kids(school);
   Array.fold_left(
     add_extended_room,
     {...school, classrooms: [||]},

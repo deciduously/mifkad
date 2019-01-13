@@ -4,18 +4,12 @@ open Types;
 type state = string;
 let component = ReasonReact.reducerComponent("ExtendedDay");
 
-/* You need a list of each core classroom, and a dropdown next to each with each extended classroom
- *  Read the extended classrooms from the list passed in
- *  On change of dropdown, fire an event to update the config
- *  You also need to change the rendering part to use this config format instead of the mapping fn
- */
-
 let make =
     (
-      ~school: school,
-      ~extended_config: extended_config,
+      ~school,
       ~adjExtRoomFired,
       ~addExtRoomClicked,
+      ~saveExtConfigClicked,
       ~removeExtRoomClicked,
       _children,
     ) => {
@@ -29,7 +23,7 @@ let make =
           {Array.of_list(
              List.map(
                extroom => {
-                 let extroom_letter = fst(extroom);
+                 let extroom_letter = extroom.letter;
                  <li key=extroom_letter>
                    {ReasonReact.string(extroom_letter)}
                    <button
@@ -38,7 +32,7 @@ let make =
                    </button>
                  </li>;
                },
-               extended_config,
+               Array.to_list(school.extended_day_config.entries),
              ),
            )
            |> ReasonReact.array}
@@ -64,13 +58,13 @@ let make =
       <div id="coreconfig">
         <ul>
           {Array.map(
-             classroom =>
+             (classroom: classroom) =>
                <li key={classroom.letter}>
                  {ReasonReact.string(classroom.letter ++ " => ")}
                  <select
                    value={get_extended_letter(
                      classroom.letter,
-                     extended_config,
+                     school.extended_day_config,
                    )}
                    onChange={event =>
                      adjExtRoomFired(
@@ -88,11 +82,11 @@ let make =
                         List.map(
                           extroom =>
                             <option
-                              key={fst(extroom) ++ "opt"}
-                              value={fst(extroom)}>
-                              {ReasonReact.string(fst(extroom))}
+                              key={extroom.letter ++ "opt"}
+                              value={extroom.letter}>
+                              {ReasonReact.string(extroom.letter)}
                             </option>,
-                          extended_config,
+                          Array.to_list(school.extended_day_config.entries),
                         ),
                       ),
                     )
@@ -103,6 +97,11 @@ let make =
            )
            |> ReasonReact.array}
         </ul>
+      </div>
+      <div>
+        <button onClick=saveExtConfigClicked>
+          {ReasonReact.string("Save Config")}
+        </button>
       </div>
     </div>,
 };
