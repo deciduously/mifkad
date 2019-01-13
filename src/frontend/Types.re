@@ -49,13 +49,18 @@ let get_uncollected_rooms = school =>
   |> List.filter(r => !r.collected)
   |> List.fold_left((s, r: classroom) => s ++ r.letter ++ " ", "");
 
-let new_extended_day_entry = letter => {letter, capacity: 0, members: [||]};
+let new_extended_day_entry = (letter, capacity) => {
+  letter,
+  capacity,
+  members: [||],
+};
 
 let contains = (list, target) =>
   /* Does target appear in list? */
   List.fold_left((acc, el) => acc || el == target, false, list);
 
-let add_extended_letter = (letter, extended_config): extended_day_config =>
+let add_extended_letter =
+    (letter, capacity, extended_config): extended_day_config =>
   if (letter == "") {
     alert("New class name was empty!");
     extended_config;
@@ -72,7 +77,7 @@ let add_extended_letter = (letter, extended_config): extended_day_config =>
     {
       entries:
         Array.append(
-          Array.make(1, new_extended_day_entry(letter)),
+          Array.make(1, new_extended_day_entry(letter, capacity)),
           extended_config.entries,
         )
         |> Array.to_list
@@ -92,7 +97,6 @@ let remove_extended_letter = (letter, extended_config) => {
 };
 
 let get_extended_capacity = (letter, extended_config) => {
-  /* Assumes letter is found in extended_config  - TODO */
   let matches =
     List.filter(
       entry => entry.letter == letter,
@@ -201,8 +205,22 @@ let add_extended_room = (school, classroom) => {
       };
       target^[idx^] = new_classroom;
     } else {
-      /* This is a new extended day room - add it as-is */
-      target := Array.append(target^, Array.make(1, classroom));
+      /* This is a new extended day room - add it as-is, grabbing the extended day capacity */
+      target :=
+        Array.append(
+          target^,
+          Array.make(
+            1,
+            {
+              ...classroom,
+              capacity:
+                get_extended_capacity(
+                  classroom.letter,
+                  school.extended_day_config,
+                ),
+            },
+          ),
+        );
     };
   };
 

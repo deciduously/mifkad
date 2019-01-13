@@ -1,7 +1,15 @@
 /* ExtendedDay.re is responsible for configuring which core rooms go to which extended day rooms */
+/* For now to change a room capacity you need to delete it and recreate it with the right number */
 open Types;
 
-type state = string;
+type state = (string, int) /* new letter, new capacity */;
+type action =
+  | ChangeLetter(string)
+  | ChangeCapacity(int)
+  | Reset;
+
+let default_state = ("XE", 20);
+
 let component = ReasonReact.reducerComponent("ExtendedDay");
 
 let make =
@@ -14,15 +22,20 @@ let make =
       _children,
     ) => {
   ...component,
-  initialState: () => "XE",
-  reducer: (newText, _text) => ReasonReact.Update(newText),
-  render: ({state: text, send}) =>
+  initialState: () => default_state,
+  reducer: (action, state) =>
+    switch (action) {
+    | ChangeLetter(letter) => ReasonReact.Update((letter, snd(state)))
+    | ChangeCapacity(capacity) => ReasonReact.Update((fst(state), capacity))
+    | Reset => ReasonReact.Update(default_state)
+    },
+  render: self =>
     <div id="extroomconfig">
       <div id="extroomlist">
         <ul>
           {Array.of_list(
              List.map(
-               extroom => {
+               (extroom: extended_day_entry) => {
                  let extroom_letter = extroom.letter;
                  <li key=extroom_letter>
                    {ReasonReact.string(extroom_letter)}
@@ -39,16 +52,35 @@ let make =
           <li>
             <input
               id="newextroom"
-              value=text
+              value={fst(self.state)}
               type_="text"
               placeholder="XE"
               onChange={event =>
-                send((event |> ReactEvent.Form.target)##value)
+                self.send(
+                  ChangeLetter((event |> ReactEvent.Form.target)##value),
+                )
               }
               onKeyDown={event =>
                 if (ReactEvent.Keyboard.key(event) == "Enter") {
-                  addExtRoomClicked(text);
-                  send("XE");
+                  addExtRoomClicked(self.state);
+                  self.send(Reset);
+                }
+              }
+            />
+            <input
+              id="newextcap"
+              value={string_of_int(snd(self.state))}
+              type_="text"
+              placeholder="20"
+              onChange={event =>
+                self.send(
+                  ChangeCapacity((event |> ReactEvent.Form.target)##value),
+                )
+              }
+              onKeyDown={event =>
+                if (ReactEvent.Keyboard.key(event) == "Enter") {
+                  addExtRoomClicked(self.state);
+                  self.send(Reset);
                 }
               }
             />
@@ -80,7 +112,7 @@ let make =
                           </option>,
                         ],
                         List.map(
-                          extroom =>
+                          (extroom: extended_day_entry) =>
                             <option
                               key={extroom.letter ++ "opt"}
                               value={extroom.letter}>

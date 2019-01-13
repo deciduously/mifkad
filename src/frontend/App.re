@@ -15,7 +15,7 @@ type action =
   | RoomCollected(school, classroom)
   | AdjExtRoom(string, string, school)
   | AddToExtended(school, kid)
-  | AddExtRoom(school, string)
+  | AddExtRoom(school, (string, int))
   | RemoveExtRoom(school, string)
   | SaveExtConfig(school)
   | Toggle(school, kid);
@@ -178,12 +178,12 @@ let make = _children => {
             ),
         }),
       )
-    | AddExtRoom(school, extroom) =>
+    | AddExtRoom(school, (letter, capacity)) =>
       ReasonReact.Update(
         Loaded({
           ...school,
           extended_day_config:
-            add_extended_letter(extroom, school.extended_day_config),
+            add_extended_letter(letter, capacity, school.extended_day_config),
         }),
       )
     | RemoveExtRoom(school, extroom) =>
