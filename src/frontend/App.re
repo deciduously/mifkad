@@ -13,6 +13,7 @@ type action =
   | EnrollmentFailedToGet
   | Reset /* Clear attendance data */
   | RoomCollected(school, classroom, extended_config)
+  | AdjExtRoom(string, string, school, extended_config)
   | AddToExtended(school, kid, extended_config)
   | AddExtRoom(school, string, extended_config)
   | RemoveExtRoom(school, string, extended_config)
@@ -145,11 +146,17 @@ let make = _children => {
             |> ignore
           ),
       )
+    | AdjExtRoom(letter, target, school, extended_config) =>
+      ReasonReact.Update(
+        Loaded(
+          school,
+          adjust_extended_config(letter, target, extended_config),
+        ),
+      )
     | AddExtRoom(school, extroom, extended_config) =>
-      Js.log("Adding " ++ extroom);
       ReasonReact.Update(
         Loaded(school, add_extended_letter(extroom, extended_config)),
-      );
+      )
     | RemoveExtRoom(school, extroom, extended_config) =>
       ReasonReact.Update(
         Loaded(school, remove_extended_letter(extroom, extended_config)),
@@ -224,7 +231,11 @@ let make = _children => {
         />
         <hr />
         <ExtendedDay
-          config=extended_config
+          school
+          extended_config
+          adjExtRoomFired={(letter, target) =>
+            self.send(AdjExtRoom(letter, target, school, extended_config))
+          }
           addExtRoomClicked={event =>
             self.send(AddExtRoom(school, event, extended_config))
           }

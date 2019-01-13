@@ -58,16 +58,29 @@ let add_extended_letter = (letter, extended_config) => [
 let remove_extended_letter = (letter, extended_config) =>
   List.filter(entry => fst(entry) != letter, extended_config);
 
+let contains = (list, target) =>
+  List.fold_left((acc, el) => acc || el == target, false, list);
+
 let get_extended_letter = (letter, extended_config) => {
   /* Grab the extended letter from the config */
   let matches =
-    List.filter(
-      entry =>
-        List.fold_left((acc, l) => acc || l == letter, false, snd(entry)),
-      extended_config,
-    );
+    List.filter(entry => contains(snd(entry), letter), extended_config);
   List.length(matches) > 0 ? matches |> List.hd |> fst : "Unassigned";
 };
+
+let adjust_extended_config = (letter, target, extended_config) =>
+  /* Returns a new extended_config with "letter" removed from existing entry and added to target entry */
+  List.map(
+    entry =>
+      if (contains(snd(entry), letter)) {
+        (fst(entry), List.filter(el => el != letter, snd(entry)));
+      } else if (fst(entry) == target) {
+        (fst(entry), [letter, ...snd(entry)]);
+      } else {
+        entry;
+      },
+    extended_config,
+  );
 
 /*
  * What you should really do is include it in the ext_config - e.g. (("AE", 7), ["A", "C"])
