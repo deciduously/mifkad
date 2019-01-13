@@ -122,7 +122,8 @@ pub fn reset_db() -> Result<()> {
             serde_json::to_string(&scrape_enrollment(*WEEKDAY, DATAFILE)?)
                 .chain_err(|| "Could not serialize school")?
                 .as_bytes(),
-        ).chain_err(|| format!("Could not write data to {}", *DB_FILE_STR))?;
+        )
+        .chain_err(|| format!("Could not write data to {}", *DB_FILE_STR))?;
     Ok(())
 }
 

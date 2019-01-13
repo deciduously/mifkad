@@ -40,26 +40,33 @@ let get_uncollected_rooms = school =>
     List.filter(r => !r.collected, Array.to_list(school.classrooms)),
   );
 
-type extended_config = list((string, list(string)))
+type extended_config = list((string, list(string)));
 
-let extended_config_F8 =
-  [
-    ("AE", ["A", "C"]),
-    ("DE", ["B", "D"]),
-    ("EE", ["E", "F", "G"]),
-    ("IE", ["J", "K", "H", "I"]),
-    ("LE", ["L", "M", "N", "O"])
-  ]
+let extended_config_F8 = [
+  ("AE", ["A", "C"]),
+  ("DE", ["B", "D"]),
+  ("EE", ["E", "F", "G"]),
+  ("IE", ["J", "K", "H", "I"]),
+  ("LE", ["L", "M", "N", "O"]),
+];
 
 let get_extended_letter = (letter, extended_config) =>
   /* Grab the extended letter from the config */
-  fst(List.hd(List.filter(entry => List.fold_left((acc, l) => acc || l == letter, false, snd(entry)), extended_config)))
+  fst(
+    List.hd(
+      List.filter(
+        entry =>
+          List.fold_left((acc, l) => acc || l == letter, false, snd(entry)),
+        extended_config,
+      ),
+    ),
+  );
 
 /* So, it turns out I can't just figure these out cleverly in the fold operation
-*  I have to hardcode them - the school wants more specific needs and I don't see any way to generate their arbitrary ones from the input data.
-* The database has no concept of "extended day", that's an arbitrary ops thing
-* So I'm hardcoding the values they want.  Meh
-*/
+ *  I have to hardcode them - the school wants more specific needs and I don't see any way to generate their arbitrary ones from the input data.
+ * The database has no concept of "extended day", that's an arbitrary ops thing
+ * So I'm hardcoding the values they want.  Meh
+ */
 let get_extended_capacity = ext_room =>
   switch (ext_room) {
   | "AE" => 7

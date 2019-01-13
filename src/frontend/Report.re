@@ -9,7 +9,7 @@ let to_fmt_name = name => {
   let idx_of_spc = String.index(name, ' ');
 
   let first_name =
-    String.sub(name, 0, idx_of_spc)  /* start_idx, len */
+    String.sub(name, 0, idx_of_spc) /* start_idx, len */
     |> String.lowercase
     |> String.capitalize;
 
@@ -24,16 +24,28 @@ let kid = kid: string =>
 let classroom = classroom: string => {
   let kidlist =
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
-  let actual_headcount = string_of_int(List.length(List.filter(k => k.schedule.actual, Array.to_list(classroom.kids^))));
-  let expected_headcount = string_of_int(Array.length(classroom.kids^ /* Only expected kids are in the list*/));
+  let actual_headcount =
+    string_of_int(
+      List.length(
+        List.filter(k => k.schedule.actual, Array.to_list(classroom.kids^)),
+      ),
+    );
+  let expected_headcount =
+    string_of_int(
+      Array.length(classroom.kids^ /* Only expected kids are in the list*/),
+    );
   "Room "
   ++ classroom.letter
-  ++ ": "  /* Check if empty, and if it's not empty, trim off the trailing comma */
+  ++ ": " /* Check if empty, and if it's not empty, trim off the trailing comma */
   ++ (
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"
   )
-  ++ " (" ++ actual_headcount ++ "/" ++ expected_headcount ++ ")"
+  ++ " ("
+  ++ actual_headcount
+  ++ "/"
+  ++ expected_headcount
+  ++ ")"
   ++ "\r\n";
 };
 
@@ -46,8 +58,7 @@ let ext_classroom = classroom: string => {
     Array.fold_left(
       (acc, k) =>
         k.schedule.actual ?
-          acc :
-          /* If the kid's a pink sheet, no need to say they were going to be added */
+          acc /* If the kid's a pink sheet, no need to say they were going to be added */ :
           k.schedule.expected == "Added" ? acc : acc ++ kid(k),
       "",
       classroom.kids^,

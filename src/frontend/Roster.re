@@ -15,21 +15,21 @@ let make =
   ...component,
   render: _self =>
     <div className="roster">
-        {
-          Array.map(
-            classroom =>
-              <div key={classroom.letter} className="room">
-                <Room
-                  room=classroom
-                  kidClicked
-                  addextClicked
-                  collectedClicked
-                  core
-                />
-              </div>,
-            school.classrooms,
-          )
-          |> ReasonReact.array
-        }
+      {
+        Array.map(
+          classroom =>
+            <div key={classroom.letter} className="room">
+              <Room
+                room=classroom
+                kidClicked
+                addextClicked
+                collectedClicked
+                core
+              />
+            </div>,
+          school.classrooms,
+        )
+        |> ReasonReact.array
+      }
     </div>,
 };

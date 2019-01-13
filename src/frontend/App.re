@@ -81,17 +81,17 @@ let make = _children => {
         ),
       )
     | EnrollmentReceived(school) =>
-      ReasonReact.Update(
-        Loaded(school, extended_config_F8),
-      )
+      ReasonReact.Update(Loaded(school, extended_config_F8))
     | EnrollmentFailedToGet => ReasonReact.Update(Error)
     | Reset =>
-    ReasonReact.UpdateWithSideEffects(
+      ReasonReact.UpdateWithSideEffects(
         Loading,
         (
-          self => {
+          self =>
             Js.Promise.(
-              Fetch.fetch("http://127.0.0.1:8080/reset/0"/* Trailing zero is ignored by the backend */)
+              Fetch.fetch(
+                "http://127.0.0.1:8080/reset/0" /* Trailing zero is ignored by the backend */,
+              )
               |> then_(Fetch.Response.json)
               |> then_(json =>
                    json
@@ -103,39 +103,18 @@ let make = _children => {
                    Js.Promise.resolve(self.send(EnrollmentFailedToGet))
                  )
               |> ignore
-            );
-          }
+            )
         ),
       )
     | RoomCollected(school, room, extended_config) =>
-    ReasonReact.UpdateWithSideEffects(
-      Loaded(toggle_collected(school, room), extended_config) /* Assume it will work and flip in the frontend */,
-      (
-        self => {
-          Js.Promise.(
-            Fetch.fetch("http://127.0.0.1:8080/collect/" ++ string_of_int(room.id))
-            |> then_(Fetch.Response.json)
-            |> then_(json =>
-                 json
-                 |> Decode.school
-                 |> (school => self.send(EnrollmentReceived(school)))
-                 |> resolve
-               )
-            |> catch(_err =>
-                 Js.Promise.resolve(self.send(EnrollmentReceived(school)))
-               )
-            |> ignore
-          );
-        }
-      ),
-    )
-    | AddToExtended(school, kid, extended_config) =>
       ReasonReact.UpdateWithSideEffects(
-        Loaded(toggle_extended(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        Loaded(toggle_collected(school, room), extended_config) /* Assume it will work and flip in the frontend */,
         (
-          self => {
+          self =>
             Js.Promise.(
-              Fetch.fetch("http://127.0.0.1:8080/addext/" ++ string_of_int(kid.id))
+              Fetch.fetch(
+                "http://127.0.0.1:8080/collect/" ++ string_of_int(room.id),
+              )
               |> then_(Fetch.Response.json)
               |> then_(json =>
                    json
@@ -147,34 +126,58 @@ let make = _children => {
                    Js.Promise.resolve(self.send(EnrollmentReceived(school)))
                  )
               |> ignore
-            );
-          }
+            )
         ),
       )
-      | RemoveExtRoom(school, extroom, extended_config) => ReasonReact.Update(Loaded(school,extended_config))
-      | Toggle(school, kid, extended_config) =>
-    ReasonReact.UpdateWithSideEffects(
-      Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
-      (
-        self => {
-          Js.Promise.(
-            Fetch.fetch("http://127.0.0.1:8080/toggle/" ++ string_of_int(kid.id))
-            |> then_(Fetch.Response.json)
-            |> then_(json =>
-                 json
-                 |> Decode.school
-                 |> (school => self.send(EnrollmentReceived(school)))
-                 |> resolve
-               )
-            |> catch(_err =>
-                 Js.Promise.resolve(self.send(EnrollmentReceived(school)))
-               )
-            |> ignore
-          );
-        }
-      ),
-    )
-  },
+    | AddToExtended(school, kid, extended_config) =>
+      ReasonReact.UpdateWithSideEffects(
+        Loaded(toggle_extended(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        (
+          self =>
+            Js.Promise.(
+              Fetch.fetch(
+                "http://127.0.0.1:8080/addext/" ++ string_of_int(kid.id),
+              )
+              |> then_(Fetch.Response.json)
+              |> then_(json =>
+                   json
+                   |> Decode.school
+                   |> (school => self.send(EnrollmentReceived(school)))
+                   |> resolve
+                 )
+              |> catch(_err =>
+                   Js.Promise.resolve(self.send(EnrollmentReceived(school)))
+                 )
+              |> ignore
+            )
+        ),
+      )
+    | RemoveExtRoom(school, extroom, extended_config) =>
+      ReasonReact.Update(Loaded(school, extended_config))
+    | Toggle(school, kid, extended_config) =>
+      ReasonReact.UpdateWithSideEffects(
+        Loaded(toggle(school, kid), extended_config) /* Assume it will work and flip in the frontend */,
+        (
+          self =>
+            Js.Promise.(
+              Fetch.fetch(
+                "http://127.0.0.1:8080/toggle/" ++ string_of_int(kid.id),
+              )
+              |> then_(Fetch.Response.json)
+              |> then_(json =>
+                   json
+                   |> Decode.school
+                   |> (school => self.send(EnrollmentReceived(school)))
+                   |> resolve
+                 )
+              |> catch(_err =>
+                   Js.Promise.resolve(self.send(EnrollmentReceived(school)))
+                 )
+              |> ignore
+            )
+        ),
+      )
+    },
   render: self =>
     switch (self.state) {
     | Error =>
@@ -184,8 +187,10 @@ let make = _children => {
             "An error occured connecting to the backend.  Check the server log.",
           )
         }
-        <br/>
-        <button onClick=(_event => self.send(GetEnrollment("today")))>{ReasonReact.string("Try to reconnect")}</button>
+        <br />
+        <button onClick=(_event => self.send(GetEnrollment("today")))>
+          {ReasonReact.string("Try to reconnect")}
+        </button>
       </div>
     | Loading => <div> {ReasonReact.string("Loading...")} </div>
     | Loaded(school, extended_config) =>
@@ -193,7 +198,12 @@ let make = _children => {
         <h1> {ReasonReact.string("Mifkad")} </h1>
         <h2> {ReasonReact.string("Attendance - " ++ school.weekday)} </h2>
         <hr />
-        <OutputViewer school extended_config refreshClicked=(_event => self.send(GetEnrollment("today"))) resetClicked=(_event => self.send(Reset))/>
+        <OutputViewer
+          school
+          extended_config
+          refreshClicked=(_event => self.send(GetEnrollment("today")))
+          resetClicked=(_event => self.send(Reset))
+        />
         <hr />
         <Roster
           school
@@ -217,7 +227,12 @@ let make = _children => {
           core=false
         />
         <hr />
-        <ExtendedDay config=extended_config_F8 removeExtRoomClicked=(event => self.send(RemoveExtRoom(school, event, extended_config))) />
+        <ExtendedDay
+          config=extended_config_F8
+          removeExtRoomClicked=(
+            event => self.send(RemoveExtRoom(school, event, extended_config))
+          )
+        />
         <footer>
           <hr />
           {ReasonReact.string("mifkad v0.2.4 \xA9 2018 Ben Lovy - ")}
