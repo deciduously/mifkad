@@ -80,13 +80,21 @@ let make =
                      )
                    }>
                    {Array.of_list(
-                      List.map(
-                        extroom =>
-                          <option
-                            key={fst(extroom) ++ "opt"} value={fst(extroom)}>
-                            {ReasonReact.string(fst(extroom))}
+                      List.append(
+                        [
+                          <option key="unassignedopt" value="Unassigned">
+                            {ReasonReact.string("Unassigned")}
                           </option>,
-                        extended_config,
+                        ],
+                        List.map(
+                          extroom =>
+                            <option
+                              key={fst(extroom) ++ "opt"}
+                              value={fst(extroom)}>
+                              {ReasonReact.string(fst(extroom))}
+                            </option>,
+                          extended_config,
+                        ),
                       ),
                     )
                     |> ReasonReact.array}

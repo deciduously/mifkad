@@ -4,7 +4,8 @@
 
 /* TODO type expected = Core | Extended | Unscheduled; */
 
-/* External JS function used in download feature */
+/* External JS functions */
+[@bs.val] external alert: string => unit = "alert";
 [@bs.val] external btoa: string => string = "btoa";
 
 /* Type declarations */
@@ -50,16 +51,19 @@ let extended_config_F8 = [
   ("LE", ["L", "M", "N", "O"]) /* This is a placeholder - it will come from the backend, this should be removed */,
 ];
 
-let add_extended_letter = (letter, extended_config) => [
-  (letter, []),
-  ...extended_config,
-];
+let contains = (list, target) =>
+  List.fold_left((acc, el) => acc || el == target, false, list);
+
+let add_extended_letter = (letter, extended_config) =>
+  if (contains(List.map(fst, extended_config), letter)) {
+    alert("Already exists!");
+    extended_config;
+  } else {
+    List.sort(compare, [(letter, []), ...extended_config]);
+  };
 
 let remove_extended_letter = (letter, extended_config) =>
   List.filter(entry => fst(entry) != letter, extended_config);
-
-let contains = (list, target) =>
-  List.fold_left((acc, el) => acc || el == target, false, list);
 
 let get_extended_letter = (letter, extended_config) => {
   /* Grab the extended letter from the config */
