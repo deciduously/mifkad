@@ -47,25 +47,30 @@ let extended_config_F8 = [
   ("DE", ["B", "D"]),
   ("EE", ["E", "F", "G"]),
   ("IE", ["J", "K", "H", "I"]),
-  ("LE", ["L", "M", "N", "O"]),
+  ("LE", ["L", "M", "N", "O"]) /* This is a placeholder - it will come from the backend, this should be removed */,
 ];
 
-let get_extended_letter = (letter, extended_config) =>
-  /* Grab the extended letter from the config */
-  fst(
-    List.hd(
-      List.filter(
-        entry =>
-          List.fold_left((acc, l) => acc || l == letter, false, snd(entry)),
-        extended_config,
-      ),
-    ),
-  );
+let add_extended_letter = (letter, extended_config) => [
+  (letter, []),
+  ...extended_config,
+];
 
-/* So, it turns out I can't just figure these out cleverly in the fold operation
- *  I have to hardcode them - the school wants more specific needs and I don't see any way to generate their arbitrary ones from the input data.
- * The database has no concept of "extended day", that's an arbitrary ops thing
- * So I'm hardcoding the values they want.  Meh
+let remove_extended_letter = (letter, extended_config) =>
+  List.filter(entry => fst(entry) != letter, extended_config);
+
+let get_extended_letter = (letter, extended_config) => {
+  /* Grab the extended letter from the config */
+  let matches =
+    List.filter(
+      entry =>
+        List.fold_left((acc, l) => acc || l == letter, false, snd(entry)),
+      extended_config,
+    );
+  List.length(matches) > 0 ? matches |> List.hd |> fst : "Unassigned";
+};
+
+/*
+ * What you should really do is include it in the ext_config - e.g. (("AE", 7), ["A", "C"])
  */
 let get_extended_capacity = ext_room =>
   switch (ext_room) {
@@ -79,26 +84,26 @@ let get_extended_capacity = ext_room =>
 
 let get_extended_kids = (school, extended_config) =>
   /* Returns a school with only the Extended Day kids */
-  /* This is stop one - make it work with the new format */
   {
     ...school,
     classrooms:
       Array.map(
-        r => {
-          ...r,
-          letter: get_extended_letter(r.letter, extended_config),
-          kids:
-            ref(
-              Array.of_list(
-                List.filter(
-                  k =>
-                    k.schedule.expected == "Extended"
-                    || k.schedule.expected == "Added",
-                  Array.to_list(r.kids^),
+        r =>
+          {
+            ...r,
+            letter: get_extended_letter(r.letter, extended_config),
+            kids:
+              ref(
+                Array.of_list(
+                  List.filter(
+                    k =>
+                      k.schedule.expected == "Extended"
+                      || k.schedule.expected == "Added",
+                    Array.to_list(r.kids^),
+                  ),
                 ),
               ),
-            ),
-        },
+          },
         school.classrooms,
       ),
   };
@@ -156,27 +161,28 @@ let toggle = (school, kid) => {
   ...school,
   classrooms:
     Array.map(
-      room => {
-        ...room,
-        kids:
-          ref(
-            Array.map(
-              k =>
-                if (kid == k) {
-                  {
-                    ...k,
-                    schedule: {
-                      ...k.schedule,
-                      actual: !k.schedule.actual,
-                    },
-                  };
-                } else {
-                  k;
-                },
-              room.kids^,
+      room =>
+        {
+          ...room,
+          kids:
+            ref(
+              Array.map(
+                k =>
+                  if (kid == k) {
+                    {
+                      ...k,
+                      schedule: {
+                        ...k.schedule,
+                        actual: !k.schedule.actual,
+                      },
+                    };
+                  } else {
+                    k;
+                  },
+                room.kids^,
+              ),
             ),
-          ),
-      },
+        },
       school.classrooms,
     ),
 };
@@ -186,28 +192,29 @@ let toggle_extended = (school, kid) => {
   ...school,
   classrooms:
     Array.map(
-      room => {
-        ...room,
-        kids:
-          ref(
-            Array.map(
-              k =>
-                if (kid == k) {
-                  {
-                    ...kid,
-                    schedule: {
-                      ...kid.schedule,
-                      expected:
-                        kid.schedule.expected == "Core" ? "Added" : "Core",
-                    },
-                  };
-                } else {
-                  k;
-                },
-              room.kids^,
+      room =>
+        {
+          ...room,
+          kids:
+            ref(
+              Array.map(
+                k =>
+                  if (kid == k) {
+                    {
+                      ...kid,
+                      schedule: {
+                        ...kid.schedule,
+                        expected:
+                          kid.schedule.expected == "Core" ? "Added" : "Core",
+                      },
+                    };
+                  } else {
+                    k;
+                  },
+                room.kids^,
+              ),
             ),
-          ),
-      },
+        },
       school.classrooms,
     ),
 };
