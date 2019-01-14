@@ -37,8 +37,11 @@ impl fmt::Display for Config {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Port {} :: Roster {:?} :: Extended Day Setup {:?} :: Verbosity {:?}",
-            self.port, self.roster, self.extended_config, self.verbosity
+            "Roster {} :: Extended Day Setup {} :: Verbosity {:?} :: Port {}",
+            self.roster.to_str().unwrap(),
+            self.extended_config.to_str().unwrap(),
+            self.verbosity,
+            self.port
         )
     }
 }

@@ -30,6 +30,15 @@ Yarn will fetch and build `bs-platform` for you, which does include compiling th
 
 Download a [release](https://github.com/deciduously/mifkad/releases).  I am currently only providing Windows builds as that's probably the only environment this will run on.  Extract the zip file to a folder of your choice and replace the included demo `.\current.xls` with real data.  In the target environment this is already taken care of.  Then double click `mifkad.exe` and point your browser to the URL given, currently always `127.0.0.1:8080`.  Have a blast clicking buttons for hours on end.  On Windows, `mifkad-launcher.bat` is provided as a one-click solution for starting the server and opening the webpage in Google Chrome.  Leave the launcher in the same directory as the executable, and create a shortcut to it anywhere you like.
 
+Accepts an optional configuration file at `Mifkad.toml` in the same directory as the executable (until I make a flag for it) like the following.  If absent the default values listed are used.  Verbosity should be one of "Warn", "Info", "Debug", or "Trace".
+
+```toml
+port = 8080
+roster = "current.xls"
+extended_config = "extended_day.json"
+verbosity = "Warn"
+```
+
 ## Develop
 
 ```sh

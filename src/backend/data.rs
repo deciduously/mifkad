@@ -9,7 +9,7 @@ use regex::Regex;
 use schema::{self, Classroom, Expected, ExtendedDayConfig, Kid, School, Weekday};
 use serde_json;
 use std::{
-    fs::{create_dir, read_dir, remove_file, File, OpenOptions},
+    fs::{create_dir, remove_file, File, OpenOptions},
     io::{prelude::Write, BufWriter},
     path::PathBuf,
     str::FromStr,
@@ -17,7 +17,7 @@ use std::{
 use util::*;
 
 lazy_static! {
-    // lazy_static facilitates the database file setup based on the current localtime system date at runtime
+    // this lazy_static block facilitates the database file setup based on the current localtime system date at runtime
 
     // Establish date
     static ref TODAY: Date<Local> = Local::today();
@@ -62,51 +62,32 @@ pub fn init_db(config: &Config) -> Result<(School)> {
         create_dir(*DB_DIR_STR).chain_err(|| "Could not create mifkad-assets\\db")?;
     }
 
+    // make sure we've got our extended day stuff good to go
+    let extended_config = get_extday(&config)?;
+
     // Now, check if we have an entry for today.  If it doesn't exist, write it from the GAN data
 
-    // First, get the contents of the directory
-    let dir_listing: Vec<PathBuf> = read_dir(*DB_DIR_STR)
-        .chain_err(|| "could not read db!")?
-        .map(|f| f.expect("could not read db entry").path())
-        .collect();
-
-    // Try to locate today.
-    let mut found = false;
-    for l in &dir_listing {
-        let curr_str = l.to_str().unwrap();
-        if curr_str == *DB_FILEPATH_STR {
-            warn!(
-                "Found previously logged attendance for {}, loading...",
-                *DAY_STR
-            );
-            found = true;
-            break;
-        }
-    }
-
-    // If we didn't find a corresponding file, serialize it out from the input roster
-    if !found {
-        info!(
+    let ret = if let Ok(fs_db) = File::open(*DB_FILEPATH_STR) {
+        info!("Using existing db file {}", *DB_FILE_STR);
+        let school: schema::School = serde_json::from_str(&string_of_file(&fs_db)?)
+            .chain_err(|| format!("Malformed {}", *DB_FILE_STR))?;
+        school
+    } else {
+        warn!(
             "No record found for {}.  Reading {:?}",
             *DAY_STR, config.roster
         );
-        let school = json!(scrape_enrollment(*WEEKDAY, &config.roster)?);
+        let school = scrape_enrollment(*WEEKDAY, extended_config, &config)?;
         let mut new_f = File::create(*DB_FILEPATH_STR)
             .chain_err(|| format!("could not create {}", *DB_FILE_STR))?;
         new_f
-            .write_all(school.to_string().as_bytes())
+            .write_all(json!(school).to_string().as_bytes())
             .chain_err(|| format!("could not write data to {}", *DB_FILE_STR))?;
-    }
-
-    // Finally, read in today's entry from the database, which we've ensured exists
-    let input_str = file_contents_from_str_path(*DB_FILEPATH_STR)?;
-
-    // Deserialize the file contents and return
-    let ret: schema::School = serde_json::from_str(&input_str)
-        .chain_err(|| format!("could not parse contents of {}", *DB_FILE_STR))?;
+        school
+    };
 
     warn!(
-        "Mifkad initialized successfully using mifkad-assets\\db\\{}",
+        "Successfully initialized Mifkad using mifkad-assets\\db\\{}",
         *DB_FILE_STR
     );
     warn!("{}", config);
@@ -114,8 +95,23 @@ pub fn init_db(config: &Config) -> Result<(School)> {
     Ok(ret)
 }
 
-pub fn init_extday() -> Result<ExtendedDayConfig> {
-    unimplemented!()
+pub fn get_extday(config: &Config) -> Result<ExtendedDayConfig> {
+    if let Ok(fs_extconf) = File::open(&config.extended_config) {
+        // we have it already, return it
+        info!("Found extended day config, loading...");
+        Ok(serde_json::from_str(&string_of_file(&fs_extconf)?)
+            .chain_err(|| format!("Malformed json in {:?}", config.extended_config))?)
+    } else {
+        // create new file with the default value, then return it
+        warn!("No extended day config file found, creating default...");
+        let mut new_f = File::create(&config.extended_config)
+            .chain_err(|| format!("Could not create {:?}", config.extended_config))?;
+        let ret = ExtendedDayConfig::default();
+        new_f
+            .write_all(json!(ret).to_string().as_bytes())
+            .chain_err(|| format!("Could not write to {:?}", config.extended_config))?;
+        Ok(ret)
+    }
 }
 
 pub fn reset_db(config: &Config) -> Result<()> {
@@ -125,7 +121,7 @@ pub fn reset_db(config: &Config) -> Result<()> {
         .chain_err(|| format!("Could not create {}", *DB_FILE_STR))?;
     new_db
         .write_all(
-            serde_json::to_string(&scrape_enrollment(*WEEKDAY, &config.roster)?)
+            serde_json::to_string(&scrape_enrollment(*WEEKDAY, get_extday(&config)?, &config)?)
                 .chain_err(|| "Could not serialize school")?
                 .as_bytes(),
         )
@@ -135,7 +131,11 @@ pub fn reset_db(config: &Config) -> Result<()> {
 
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
-pub fn scrape_enrollment(day: Weekday, file_str: &PathBuf) -> Result<School> {
+pub fn scrape_enrollment(
+    day: Weekday,
+    extended_config: ExtendedDayConfig,
+    config: &Config,
+) -> Result<School> {
     lazy_static! {
         // Define patterns to match
         static ref KID_RE: Regex =
@@ -144,13 +144,11 @@ pub fn scrape_enrollment(day: Weekday, file_str: &PathBuf) -> Result<School> {
         static ref CAPACITY_RE: Regex = Regex::new(r"CLASS MAXIMUM: (\d+)").unwrap();
     }
 
-    info!("Loading {:?} from {:?}", day, file_str);
-    // here is where you set up the extended day config
-    // look for file, if no file exists, write one with the Default impl
-    let mut school = School::new(day);
+    info!("Loading {:?} from {:?}", day, &config.roster);
+    let mut school = School::new(day, extended_config);
 
     // Use calamine to read in the input sheet
-    let mut excel: Xls<_> = open_workbook(file_str).unwrap();
+    let mut excel: Xls<_> = open_workbook(&config.roster).unwrap();
 
     let mut headcount = 0;
     let mut classcount = 0;
@@ -253,8 +251,8 @@ pub fn scrape_enrollment(day: Weekday, file_str: &PathBuf) -> Result<School> {
         last_class.kids.len(),
     );
     warn!(
-        "ENROLLMENT LOADED - {:?} - total headcount {}, total classcount {}",
-        day, headcount, classcount
+        "Successfully loaded {:?} enrollment from {:?} - total headcount {}, total classcount {}",
+        day, config.roster, headcount, classcount
     );
 
     Ok(school)
@@ -264,6 +262,7 @@ pub fn write_db(school: &School) -> Result<()> {
     // Open as writable - will overwrite contents
     let f = OpenOptions::new()
         .write(true)
+        .truncate(true)
         .open(*DB_FILEPATH_STR)
         .chain_err(|| "Could not open db file")?;
     let out = serde_json::to_string(school).chain_err(|| "Could not serialize data structure")?;
@@ -271,18 +270,4 @@ pub fn write_db(school: &School) -> Result<()> {
     bfw.write(out.as_bytes())
         .chain_err(|| "Could not write out data structure")?;
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{scrape_enrollment, Weekday};
-    use std::str::FromStr;
-
-    #[test]
-    fn test_open_excel() {
-        let school =
-            scrape_enrollment(Weekday::from_str("mon").unwrap(), &"sample/test.xls".into())
-                .unwrap();
-        assert!(school.classrooms.len() > 0)
-    }
 }

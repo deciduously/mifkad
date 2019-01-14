@@ -17,3 +17,5 @@ current*.xls
 yarn-error.log
 **/.#*
 **/.~*
+
+extended_day.json

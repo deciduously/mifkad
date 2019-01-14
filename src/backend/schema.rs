@@ -107,11 +107,11 @@ pub struct School {
 }
 
 impl School {
-    pub fn new(day: Weekday) -> Self {
+    pub fn new(day: Weekday, extended_day_config: ExtendedDayConfig) -> Self {
         Self {
             weekday: day,
             classrooms: Vec::new(),
-            extended_day_config: ExtendedDayConfig::default(),
+            extended_day_config,
         }
     }
 
