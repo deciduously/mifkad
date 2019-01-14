@@ -114,6 +114,25 @@ pub fn get_extday(config: &Config) -> Result<ExtendedDayConfig> {
     }
 }
 
+pub fn reset_extday(new_config: &ExtendedDayConfig, config: &Config) -> Result<()> {
+    // replace whatever's there with the incoming, creating it if it doens't exist
+    let mut fs_extconf = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open(&config.extended_config)
+        .chain_err(|| format!("Could not open {:?}", &config.extended_config))?;
+    fs_extconf
+        .write_all(json!(new_config).to_string().as_bytes())
+        .chain_err(|| {
+            format!(
+                "Could not write new extended day config to {:?}",
+                config.extended_config
+            )
+        })?;
+    Ok(())
+}
+
 pub fn reset_db(config: &Config) -> Result<()> {
     // Delete current file and replace it with a brand new copy
     remove_file(*DB_FILEPATH_STR).chain_err(|| format!("Could not clear {}", *DB_FILE_STR))?;

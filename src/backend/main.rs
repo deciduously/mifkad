@@ -39,7 +39,7 @@ use actix_web::{
 use config::{init_config, Config};
 use data::init_db;
 use errors::{Result, ResultExt};
-use handlers::{adjust_school, index, school_today};
+use handlers::{adjust_school, index, new_extended_config, school_today};
 use schema::School;
 use std::{
     env::{set_var, var},
@@ -108,7 +108,7 @@ fn run() -> Result<()> {
             |app| {
                 Cors::for_app(app)
                     .send_wildcard()
-                    .allowed_methods(vec!["GET"])
+                    .allowed_methods(vec!["GET", "POST"])
                     .max_age(3600)
                     .resource("/", |r| r.route().a(index))
                     .resource("/school/today", |r| {
@@ -116,6 +116,9 @@ fn run() -> Result<()> {
                     })
                     .resource("/{action}/{id}", |r| {
                         r.method(http::Method::GET).with(adjust_school)
+                    })
+                    .resource("/extconf", |r| {
+                        r.method(http::Method::POST).a(new_extended_config)
                     })
                     .register()
             }

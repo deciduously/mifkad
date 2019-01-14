@@ -2,11 +2,11 @@
 //use super::AppState;
 use super::AppState;
 use actix_web::{
-    self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path, State,
+    self, fs::NamedFile, AsyncResponder, HttpMessage, HttpRequest, HttpResponse, Json, Path, State,
 };
-use data::{init_db, reset_db, write_db};
-use futures::{future::result, Future};
-use schema::School;
+use data::{init_db, reset_db, reset_extday, write_db};
+use futures::{future::result, Future, Stream};
+use schema::{ExtendedDayConfig, School};
 use std::{
     clone::Clone,
     io::{prelude::Read, BufReader},
@@ -53,6 +53,23 @@ pub fn index(
         .unwrap_or_else(|_| panic!("could not read index file"));
 
     result(Ok(HttpResponse::Ok().content_type("text/html").body(ret))).responder()
+}
+
+// Replace the extended config with the incoming POST data
+pub fn new_extended_config(
+    req: &HttpRequest<AppState>,
+) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
+    let c = req.state().config.clone();
+    warn!("Resetting extended day config!");
+    req.payload()
+        .concat2()
+        .from_err()
+        .and_then(move |body| {
+            let new_config = serde_json::from_slice::<ExtendedDayConfig>(&body)?;
+            reset_extday(&new_config, &c).unwrap();
+            Ok(HttpResponse::Ok().json(new_config))
+        })
+        .responder()
 }
 
 // The RwLock read handler

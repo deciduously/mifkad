@@ -1,5 +1,5 @@
 use errors::*;
-use std::{fmt, path::PathBuf, str::FromStr};
+use std::{fmt, path::PathBuf};
 use toml;
 use util::*;
 
@@ -11,18 +11,6 @@ pub enum Verbosity {
     Info,
     Debug,
     Trace,
-}
-
-impl FromStr for Verbosity {
-    type Err = ::std::io::Error;
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-        match s {
-            "info" | "Info" | "1" => Ok(Verbosity::Info),
-            "debug" | "Debug" | "2" => Ok(Verbosity::Debug),
-            "trace" | "Trace" | "3" => Ok(Verbosity::Trace),
-            "warn" | "Warn" | "0" | _ => Ok(Verbosity::Warn),
-        }
-    }
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -37,7 +25,7 @@ impl fmt::Display for Config {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Roster {} :: Extended Day Setup {} :: Verbosity {:?} :: Port {}",
+            "Roster: {} - Extended Day Setup: {} - Verbosity: {:?} - Port: {}",
             self.roster.to_str().unwrap(),
             self.extended_config.to_str().unwrap(),
             self.verbosity,
