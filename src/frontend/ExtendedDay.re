@@ -2,13 +2,13 @@
 /* For now to change a room capacity you need to delete it and recreate it with the right number */
 open Types;
 
-type state = (string, int) /* new letter, new capacity */;
+type state = (string, string) /* new letter, new capacity */;
 type action =
   | ChangeLetter(string)
-  | ChangeCapacity(int)
+  | ChangeCapacity(string)
   | Reset;
 
-let default_state = ("XE", 20);
+let default_state = ("XE", "20");
 
 let component = ReasonReact.reducerComponent("ExtendedDay");
 
@@ -69,7 +69,7 @@ let make =
             />
             <input
               id="newextcap"
-              value={string_of_int(snd(self.state))}
+              value={snd(self.state)}
               type_="text"
               placeholder="20"
               onChange={event =>

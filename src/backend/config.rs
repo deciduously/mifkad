@@ -51,13 +51,3 @@ pub fn init_config(s: Option<&str>) -> Result<Config> {
             .chain_err(|| "Improperly formatted TOML")?,
     )
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_init_config_default() {
-        assert_eq!(init_config(None).unwrap(), Config::default())
-    }
-}

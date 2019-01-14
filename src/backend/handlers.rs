@@ -1,6 +1,5 @@
 // handlers.rs defines the actix_web handlers
-//use super::AppState;
-use super::AppState;
+use crate::AppState;
 use actix_web::{
     self, fs::NamedFile, AsyncResponder, HttpMessage, HttpRequest, HttpResponse, Json, Path, State,
 };
@@ -67,7 +66,7 @@ pub fn new_extended_config(
         .and_then(move |body| {
             let new_config = serde_json::from_slice::<ExtendedDayConfig>(&body)?;
             reset_extday(&new_config, &c).unwrap();
-            Ok(HttpResponse::Ok().json(new_config))
+            Ok(HttpResponse::Ok().finish())
         })
         .responder()
 }
@@ -79,6 +78,7 @@ pub fn school_today(
     // Grab a non-blocking read lock and return the result as Json
     let a = req.state().school.read().unwrap();
     let ret = Json((*a).clone());
+    debug!("school today: {}", json!(*a));
     result(Ok(ret)).responder()
 }
 

@@ -161,11 +161,11 @@ impl Default for ExtendedDayConfig {
     fn default() -> Self {
         Self {
             entries: vec![
-                ExtendedDayEntry::new("AE", 7, vec!["A", "C"]),
-                ExtendedDayEntry::new("DE", 9, vec!["B", "D"]),
-                ExtendedDayEntry::new("EE", 9, vec!["E", "F", "G"]),
-                ExtendedDayEntry::new("IE", 14, vec!["J", "K", "H", "I"]),
-                ExtendedDayEntry::new("LE", 20, vec!["L", "M", "N", "O"]),
+                ExtendedDayEntry::new("AE", "7", vec!["A", "C"]),
+                ExtendedDayEntry::new("DE", "9", vec!["B", "D"]),
+                ExtendedDayEntry::new("EE", "9", vec!["E", "F", "G"]),
+                ExtendedDayEntry::new("IE", "14", vec!["J", "K", "H", "I"]),
+                ExtendedDayEntry::new("LE", "20", vec!["L", "M", "N", "O"]),
             ],
         }
     }
@@ -174,15 +174,15 @@ impl Default for ExtendedDayConfig {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ExtendedDayEntry {
     letter: String,
-    capacity: u32,
+    capacity: String,
     members: Vec<String>,
 }
 
 impl ExtendedDayEntry {
-    fn new(letter: &str, capacity: u32, members: Vec<&str>) -> Self {
+    fn new(letter: &str, capacity: &str, members: Vec<&str>) -> Self {
         Self {
             letter: letter.into(),
-            capacity,
+            capacity: capacity.into(),
             members: members.iter().map(|s| s.to_string()).collect(),
         }
     }

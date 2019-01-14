@@ -30,7 +30,7 @@ type classroom = {
 
 type extended_day_entry = {
   letter: string,
-  capacity: int,
+  capacity: string /* for simplicity's sake - its only cosmetic anyway */,
   members: array(string),
 };
 
@@ -102,7 +102,7 @@ let get_extended_capacity = (letter, extended_config) => {
       entry => entry.letter == letter,
       Array.to_list(extended_config.entries),
     );
-  List.length(matches) > 0 ? List.hd(matches).capacity : 0;
+  List.length(matches) > 0 ? List.hd(matches).capacity : "0";
 };
 
 let get_extended_letter = (letter, extended_config) => {
@@ -200,7 +200,8 @@ let add_extended_room = (school, classroom) => {
       let new_classroom = {
         ...old_classroom,
         capacity:
-          get_extended_capacity(classroom.letter, school.extended_day_config),
+          get_extended_capacity(classroom.letter, school.extended_day_config)
+          |> int_of_string,
         kids: ref(Array.append(old_classroom.kids^, classroom.kids^)),
       };
       target^[idx^] = new_classroom;
@@ -217,7 +218,8 @@ let add_extended_room = (school, classroom) => {
                 get_extended_capacity(
                   classroom.letter,
                   school.extended_day_config,
-                ),
+                )
+                |> int_of_string,
             },
           ),
         );
