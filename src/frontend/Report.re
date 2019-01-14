@@ -18,10 +18,10 @@ let to_fmt_name = name => {
   first_name ++ " " ++ last_initial ++ ".";
 };
 
-let kid = (kid): string =>
+let kid = kid: string =>
   kid.schedule.actual ? "" : to_fmt_name(kid.name) ++ ", ";
 
-let classroom = (classroom): string => {
+let classroom = classroom: string => {
   let kidlist =
     Array.fold_left((acc, k) => acc ++ kid(k), "", classroom.kids^);
   let actual_headcount =
@@ -53,7 +53,7 @@ let trim_trailing = s =>
   /* Trims the trailing comma and space that happens when we grab our kid list strings */
   String.sub(s, 0, String.length(s) - 2);
 
-let ext_classroom = (classroom): string => {
+let ext_classroom = classroom: string => {
   let absent_kids =
     Array.fold_left(
       (acc, k) =>
@@ -132,25 +132,29 @@ let ext_attendance_preview = school => {
   <div>
     {ReasonReact.string("Hi Everyone,")}
     <br />
-    {ReasonReact.string(
-       "Here are your extended day numbers for " ++ date ++ ":",
-     )}
+    {
+      ReasonReact.string(
+        "Here are your extended day numbers for " ++ date ++ ":",
+      )
+    }
     <br />
     <br />
-    {Array.map(
-       (c: classroom) =>
-         <li key={c.letter ++ "pre"}>
-           {ReasonReact.string(ext_classroom(c))}
-         </li>,
-       ext.classrooms,
-     )
-     |> ReasonReact.array}
+    {
+      Array.map(
+        (c: classroom) =>
+          <li key={c.letter ++ "pre"}>
+            {ReasonReact.string(ext_classroom(c))}
+          </li>,
+        ext.classrooms,
+      )
+      |> ReasonReact.array
+    }
     <br />
     {ReasonReact.string("Thanks,")}
   </div>;
 };
 
-let school = (school): string =>
+let school = school: string =>
   uncollected(school)
   ++ core_attendance_str(school)
   ++ "\r\nHi Everyone,\r\nHere are your extended day numbers for "

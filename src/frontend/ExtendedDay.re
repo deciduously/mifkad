@@ -33,38 +33,42 @@ let make =
     <div id="extroomconfig">
       <div id="extroomlist">
         <ul>
-          {Array.of_list(
-             List.map(
-               (extroom: extended_day_entry) => {
-                 let extroom_letter = extroom.letter;
-                 <li key=extroom_letter>
-                   {ReasonReact.string(extroom_letter)}
-                   <button
-                     onClick={_event => removeExtRoomClicked(extroom_letter)}>
-                     {ReasonReact.string("Remove")}
-                   </button>
-                 </li>;
-               },
-               Array.to_list(school.extended_day_config.entries),
-             ),
-           )
-           |> ReasonReact.array}
+          {
+            Array.of_list(
+              List.map(
+                (extroom: extended_day_entry) => {
+                  let extroom_letter = extroom.letter;
+                  <li key=extroom_letter>
+                    {ReasonReact.string(extroom_letter)}
+                    <button
+                      onClick={_event => removeExtRoomClicked(extroom_letter)}>
+                      {ReasonReact.string("Remove")}
+                    </button>
+                  </li>;
+                },
+                Array.to_list(school.extended_day_config.entries),
+              ),
+            )
+            |> ReasonReact.array
+          }
           <li>
             <input
               id="newextroom"
               value={fst(self.state)}
               type_="text"
               placeholder="XE"
-              onChange={event =>
-                self.send(
-                  ChangeLetter((event |> ReactEvent.Form.target)##value),
-                )
+              onChange={
+                event =>
+                  self.send(
+                    ChangeLetter((event |> ReactEvent.Form.target)##value),
+                  )
               }
-              onKeyDown={event =>
-                if (ReactEvent.Keyboard.key(event) == "Enter") {
-                  addExtRoomClicked(self.state);
-                  self.send(Reset);
-                }
+              onKeyDown={
+                event =>
+                  if (ReactEvent.Keyboard.key(event) == "Enter") {
+                    addExtRoomClicked(self.state);
+                    self.send(Reset);
+                  }
               }
             />
             <input
@@ -72,16 +76,18 @@ let make =
               value={snd(self.state)}
               type_="text"
               placeholder="20"
-              onChange={event =>
-                self.send(
-                  ChangeCapacity((event |> ReactEvent.Form.target)##value),
-                )
+              onChange={
+                event =>
+                  self.send(
+                    ChangeCapacity((event |> ReactEvent.Form.target)##value),
+                  )
               }
-              onKeyDown={event =>
-                if (ReactEvent.Keyboard.key(event) == "Enter") {
-                  addExtRoomClicked(self.state);
-                  self.send(Reset);
-                }
+              onKeyDown={
+                event =>
+                  if (ReactEvent.Keyboard.key(event) == "Enter") {
+                    addExtRoomClicked(self.state);
+                    self.send(Reset);
+                  }
               }
             />
           </li>
@@ -89,45 +95,52 @@ let make =
       </div>
       <div id="coreconfig">
         <ul>
-          {Array.map(
-             (classroom: classroom) =>
-               <li key={classroom.letter}>
-                 {ReasonReact.string(classroom.letter ++ " => ")}
-                 <select
-                   value={get_extended_letter(
-                     classroom.letter,
-                     school.extended_day_config,
-                   )}
-                   onChange={event =>
-                     adjExtRoomFired(
-                       classroom.letter,
-                       (event |> ReactEvent.Form.target)##value,
-                     )
-                   }>
-                   {Array.of_list(
-                      List.append(
-                        [
-                          <option key="unassignedopt" value="Unassigned">
-                            {ReasonReact.string("Unassigned")}
-                          </option>,
-                        ],
-                        List.map(
-                          (extroom: extended_day_entry) =>
-                            <option
-                              key={extroom.letter ++ "opt"}
-                              value={extroom.letter}>
-                              {ReasonReact.string(extroom.letter)}
+          {
+            Array.map(
+              (classroom: classroom) =>
+                <li key={classroom.letter}>
+                  {ReasonReact.string(classroom.letter ++ " => ")}
+                  <select
+                    value={
+                      get_extended_letter(
+                        classroom.letter,
+                        school.extended_day_config,
+                      )
+                    }
+                    onChange={
+                      event =>
+                        adjExtRoomFired(
+                          classroom.letter,
+                          (event |> ReactEvent.Form.target)##value,
+                        )
+                    }>
+                    {
+                      Array.of_list(
+                        List.append(
+                          [
+                            <option key="unassignedopt" value="Unassigned">
+                              {ReasonReact.string("Unassigned")}
                             </option>,
-                          Array.to_list(school.extended_day_config.entries),
+                          ],
+                          List.map(
+                            (extroom: extended_day_entry) =>
+                              <option
+                                key={extroom.letter ++ "opt"}
+                                value={extroom.letter}>
+                                {ReasonReact.string(extroom.letter)}
+                              </option>,
+                            Array.to_list(school.extended_day_config.entries),
+                          ),
                         ),
-                      ),
-                    )
-                    |> ReasonReact.array}
-                 </select>
-               </li>,
-             school.classrooms,
-           )
-           |> ReasonReact.array}
+                      )
+                      |> ReasonReact.array
+                    }
+                  </select>
+                </li>,
+              school.classrooms,
+            )
+            |> ReasonReact.array
+          }
         </ul>
       </div>
       <div>

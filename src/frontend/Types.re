@@ -8,6 +8,7 @@ open Belt.Option;
 
 /* External JS functions */
 [@bs.val] external alert: string => unit = "alert";
+[@bs.val] external confirm: string => bool = "confirm";
 [@bs.val] external btoa: string => string = "btoa";
 
 /* Type declarations */
@@ -68,7 +69,7 @@ let add_extended_letter =
     extended_config;
   } else if (letter |> Js.String.match([%re "/^[A-Z]E$/"]) |> isNone) {
     alert("Must use a single capital letter followed by E, like XE or BE");
-    extended_config
+    extended_config;
   } else if (contains(
                List.map(
                  el => el.letter,
@@ -158,22 +159,21 @@ let get_extended_kids = school =>
     ...school,
     classrooms:
       Array.map(
-        (r: classroom) =>
-          {
-            ...r,
-            letter: get_extended_letter(r.letter, school.extended_day_config),
-            kids:
-              ref(
-                Array.of_list(
-                  List.filter(
-                    k =>
-                      k.schedule.expected == "Extended"
-                      || k.schedule.expected == "Added",
-                    Array.to_list(r.kids^),
-                  ),
+        (r: classroom) => {
+          ...r,
+          letter: get_extended_letter(r.letter, school.extended_day_config),
+          kids:
+            ref(
+              Array.of_list(
+                List.filter(
+                  k =>
+                    k.schedule.expected == "Extended"
+                    || k.schedule.expected == "Added",
+                  Array.to_list(r.kids^),
                 ),
               ),
-          },
+            ),
+        },
         school.classrooms,
       ),
   };
@@ -249,28 +249,27 @@ let toggle = (school, kid) => {
   ...school,
   classrooms:
     Array.map(
-      room =>
-        {
-          ...room,
-          kids:
-            ref(
-              Array.map(
-                k =>
-                  if (kid == k) {
-                    {
-                      ...k,
-                      schedule: {
-                        ...k.schedule,
-                        actual: !k.schedule.actual,
-                      },
-                    };
-                  } else {
-                    k;
-                  },
-                room.kids^,
-              ),
+      room => {
+        ...room,
+        kids:
+          ref(
+            Array.map(
+              k =>
+                if (kid == k) {
+                  {
+                    ...k,
+                    schedule: {
+                      ...k.schedule,
+                      actual: !k.schedule.actual,
+                    },
+                  };
+                } else {
+                  k;
+                },
+              room.kids^,
             ),
-        },
+          ),
+      },
       school.classrooms,
     ),
 };
@@ -280,29 +279,28 @@ let toggle_extended = (school, kid) => {
   ...school,
   classrooms:
     Array.map(
-      room =>
-        {
-          ...room,
-          kids:
-            ref(
-              Array.map(
-                k =>
-                  if (kid == k) {
-                    {
-                      ...kid,
-                      schedule: {
-                        ...kid.schedule,
-                        expected:
-                          kid.schedule.expected == "Core" ? "Added" : "Core",
-                      },
-                    };
-                  } else {
-                    k;
-                  },
-                room.kids^,
-              ),
+      room => {
+        ...room,
+        kids:
+          ref(
+            Array.map(
+              k =>
+                if (kid == k) {
+                  {
+                    ...kid,
+                    schedule: {
+                      ...kid.schedule,
+                      expected:
+                        kid.schedule.expected == "Core" ? "Added" : "Core",
+                    },
+                  };
+                } else {
+                  k;
+                },
+              room.kids^,
             ),
-        },
+          ),
+      },
       school.classrooms,
     ),
 };
