@@ -4,14 +4,12 @@
 
 /* TODO type expected = Core | Extended | Unscheduled; */
 
-open Belt.Option;
+open Belt.Option /* External JS functions */;
 
-/* External JS functions */
 [@bs.val] external alert: string => unit = "alert";
 [@bs.val] external confirm: string => bool = "confirm";
-[@bs.val] external btoa: string => string = "btoa";
+[@bs.val] external btoa: string => string = "btoa" /* Type declarations */;
 
-/* Type declarations */
 type day = {
   expected: string,
   actual: bool,

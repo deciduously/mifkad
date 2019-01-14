@@ -9,7 +9,7 @@ let to_fmt_name = name => {
   let idx_of_spc = String.index(name, ' ');
 
   let first_name =
-    String.sub(name, 0, idx_of_spc)  /* start_idx, len */
+    String.sub(name, 0, idx_of_spc) /* start_idx, len */
     |> String.lowercase
     |> String.capitalize;
 
@@ -36,7 +36,7 @@ let classroom = classroom: string => {
     );
   "Room "
   ++ classroom.letter
-  ++ ": "  /* Check if empty, and if it's not empty, trim off the trailing comma */
+  ++ ": " /* Check if empty, and if it's not empty, trim off the trailing comma */
   ++ (
     String.length(kidlist) > 0 ?
       String.sub(kidlist, 0, String.length(kidlist) - 2) : "All here"

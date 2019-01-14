@@ -25,7 +25,7 @@ let make = (~kid: kid, ~kidClicked, ~addextClicked, ~core, _children) => {
         let idx_of_spc = String.index(name, ' ');
 
         let first_name =
-          String.sub(name, 0, idx_of_spc)  /* start_idx, len */
+          String.sub(name, 0, idx_of_spc) /* start_idx, len */
           |> String.lowercase
           |> String.capitalize;
 
