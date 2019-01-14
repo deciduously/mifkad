@@ -53,12 +53,12 @@ pub struct AppState {
 }
 
 impl AppState {
-    fn new(a: &Arc<RwLock<School>>, config: &Config) -> Result<Self> {
+    fn new(a: &Arc<RwLock<School>>, config: &Config) -> Self {
         let school = Arc::clone(a);
-        Ok(Self {
+        Self {
             config: config.clone(),
             school,
-        })
+        }
     }
 }
 
@@ -101,33 +101,31 @@ fn run() -> Result<()> {
     let addr = format!("127.0.0.1:{}", config.port);
 
     HttpServer::new(move || {
-        App::with_state(
-            AppState::new(&initial_school, &config).expect("could not initialize AppState"),
-        )
-        .configure({
-            |app| {
-                Cors::for_app(app)
-                    .send_wildcard()
-                    .allowed_methods(vec!["GET", "POST"])
-                    .max_age(3600)
-                    .resource("/", |r| r.route().a(index))
-                    .resource("/school/today", |r| {
-                        r.method(http::Method::GET).a(school_today)
-                    })
-                    .resource("/{action}/{id}", |r| {
-                        r.method(http::Method::GET).with(adjust_school)
-                    })
-                    .resource("/extconf", |r| {
-                        r.method(http::Method::POST).a(new_extended_config)
-                    })
-                    .register()
-            }
-        })
-        .handler(
-            "/mifkad-assets",
-            StaticFiles::new("./mifkad-assets/").unwrap(),
-        )
-        .middleware(middleware::Logger::default())
+        App::with_state(AppState::new(&initial_school, &config))
+            .configure({
+                |app| {
+                    Cors::for_app(app)
+                        .send_wildcard()
+                        .allowed_methods(vec!["GET", "POST"])
+                        .max_age(3600)
+                        .resource("/", |r| r.route().a(index))
+                        .resource("/school/today", |r| {
+                            r.method(http::Method::GET).a(school_today)
+                        })
+                        .resource("/{action}/{id}", |r| {
+                            r.method(http::Method::GET).with(adjust_school)
+                        })
+                        .resource("/extconf", |r| {
+                            r.method(http::Method::POST).with(new_extended_config)
+                        })
+                        .register()
+                }
+            })
+            .handler(
+                "/mifkad-assets",
+                StaticFiles::new("./mifkad-assets/").unwrap(),
+            )
+            .middleware(middleware::Logger::default())
     })
     .bind(addr)
     .chain_err(|| "Could not initialize server")?

@@ -150,6 +150,10 @@ impl School {
             }
         }
     }
+
+    pub fn replace_extended_config(&mut self, newconf: &ExtendedDayConfig) {
+        self.extended_day_config = newconf.clone();
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -161,11 +165,11 @@ impl Default for ExtendedDayConfig {
     fn default() -> Self {
         Self {
             entries: vec![
-                ExtendedDayEntry::new("AE", "7", vec!["A", "C"]),
-                ExtendedDayEntry::new("DE", "9", vec!["B", "D"]),
-                ExtendedDayEntry::new("EE", "9", vec!["E", "F", "G"]),
-                ExtendedDayEntry::new("IE", "14", vec!["J", "K", "H", "I"]),
-                ExtendedDayEntry::new("LE", "20", vec!["L", "M", "N", "O"]),
+                ExtendedDayEntry::new("AE", "7", &["A", "C"]),
+                ExtendedDayEntry::new("DE", "9", &["B", "D"]),
+                ExtendedDayEntry::new("EE", "9", &["E", "F", "G"]),
+                ExtendedDayEntry::new("IE", "14", &["J", "K", "H", "I"]),
+                ExtendedDayEntry::new("LE", "20", &["L", "M", "N", "O"]),
             ],
         }
     }
@@ -179,7 +183,7 @@ pub struct ExtendedDayEntry {
 }
 
 impl ExtendedDayEntry {
-    fn new(letter: &str, capacity: &str, members: Vec<&str>) -> Self {
+    fn new(letter: &str, capacity: &str, members: &[&str]) -> Self {
         Self {
             letter: letter.into(),
             capacity: capacity.into(),

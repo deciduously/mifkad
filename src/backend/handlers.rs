@@ -1,10 +1,10 @@
 // handlers.rs defines the actix_web handlers
 use crate::AppState;
 use actix_web::{
-    self, fs::NamedFile, AsyncResponder, HttpMessage, HttpRequest, HttpResponse, Json, Path, State,
+    self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path, State,
 };
 use data::{init_db, reset_db, reset_extday, write_db};
-use futures::{future::result, Future, Stream};
+use futures::{future::result, Future};
 use schema::{ExtendedDayConfig, School};
 use std::{
     clone::Clone,
@@ -56,19 +56,16 @@ pub fn index(
 
 // Replace the extended config with the incoming POST data
 pub fn new_extended_config(
-    req: &HttpRequest<AppState>,
+    (newconf, state): (Json<ExtendedDayConfig>, State<AppState>),
 ) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
-    let c = req.state().config.clone();
     warn!("Resetting extended day config!");
-    req.payload()
-        .concat2()
-        .from_err()
-        .and_then(move |body| {
-            let new_config = serde_json::from_slice::<ExtendedDayConfig>(&body)?;
-            reset_extday(&new_config, &c).unwrap();
-            Ok(HttpResponse::Ok().finish())
-        })
-        .responder()
+    reset_extday(&newconf.clone(), &state.config).unwrap();
+    let mut a = state.school.write().unwrap();
+    // update app state
+    (*a).replace_extended_config(&newconf.into_inner());
+    // sync app state to disk
+    write_db(&*a).unwrap();
+    result(Ok(HttpResponse::Ok().finish())).responder()
 }
 
 // The RwLock read handler
