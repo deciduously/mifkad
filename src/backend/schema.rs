@@ -182,7 +182,7 @@ impl ExtendedDayEntry {
     fn new(letter: &str, capacity: u32, members: Vec<&str>) -> Self {
         Self {
             letter: letter.into(),
-            capacity: capacity.into(),
+            capacity,
             members: members.iter().map(|s| s.to_string()).collect(),
         }
     }

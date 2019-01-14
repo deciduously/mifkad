@@ -83,8 +83,8 @@ pub fn adjust_school(
             AddExt => (*a).addext_kid(id),
             Collect => (*a).collect_room(id),
             Reset => {
-                reset_db().unwrap();
-                (*a) = init_db().unwrap();
+                reset_db(&state.config).unwrap();
+                (*a) = init_db(&state.config).unwrap();
             }
         }
         // blocking lock is dropped here

@@ -1,0 +1,4 @@
+port = 8080
+roster = "current.xls"
+extended_config = "extended_day.json"
+verbosity = "Warn"

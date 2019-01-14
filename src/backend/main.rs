@@ -18,13 +18,16 @@ extern crate serde;
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
+extern crate toml;
 
+mod config;
 mod data;
 mod errors {
     error_chain! {}
 }
 mod handlers;
 mod schema;
+mod util;
 
 use actix_web::{
     fs::StaticFiles,
@@ -33,6 +36,7 @@ use actix_web::{
     server::HttpServer,
     App,
 };
+use config::{init_config, Config};
 use data::init_db;
 use errors::{Result, ResultExt};
 use handlers::{adjust_school, index, school_today};
@@ -42,32 +46,35 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-static DATAFILE: &str = "current.xls";
-
 // RwLock allows either multiple readers or a single writer, but not both
 pub struct AppState {
+    pub config: Config,
     pub school: Arc<RwLock<School>>,
 }
 
 impl AppState {
-    fn new(a: &Arc<RwLock<School>>) -> Result<Self> {
+    fn new(a: &Arc<RwLock<School>>, config: &Config) -> Result<Self> {
         let school = Arc::clone(a);
-        Ok(Self { school })
+        Ok(Self {
+            config: config.clone(),
+            school,
+        })
     }
 }
 
-// Start env_logger - for now, change this number to change log level
-// I'm using it for all of main, just just actix-web
-fn init_logging(level: u64) -> Result<()> {
+// Start env_logger
+// I'm using it for all of main, not just actix-web
+fn init_logging(level: config::Verbosity) -> Result<()> {
     // if RUST_BACKTRACE is set, ignore the arg given and set `trace` no matter what
     let verbosity = if var("RUST_BACKTRACE").unwrap_or_else(|_| "0".into()) == "1" {
         "mifkad=trace"
     } else {
+        use config::Verbosity::*;
         match level {
-            0 => "warn",
-            1 => "info",
-            2 => "debug",
-            3 | _ => "trace",
+            Warn => "warn",
+            Info => "info",
+            Debug => "debug",
+            Trace => "trace",
         }
     };
     if verbosity == "mifkad=trace" {
@@ -83,39 +90,41 @@ fn init_logging(level: u64) -> Result<()> {
 }
 
 fn run() -> Result<()> {
-    // TODO - set this with a command-line flag.  For now, info is a good default
-    // 0 - warn, 1 - info, 2 - debug, 3+ - trace
-    init_logging(1)?;
+    let config = init_config(None).unwrap_or_default();
+    info!("{}", config);
+    init_logging(config.verbosity)?;
 
-    let initial_school = Arc::new(RwLock::new(init_db()?));
+    let initial_school = Arc::new(RwLock::new(init_db(&config)?));
 
     // actix setup
     let sys = actix::System::new("mifkad");
-    let addr = "127.0.0.1:8080";
+    let addr = format!("127.0.0.1:{}", config.port);
 
     HttpServer::new(move || {
-        App::with_state(AppState::new(&initial_school).expect("could not initialize AppState"))
-            .configure({
-                |app| {
-                    Cors::for_app(app)
-                        .send_wildcard()
-                        .allowed_methods(vec!["GET"])
-                        .max_age(3600)
-                        .resource("/", |r| r.route().a(index)) // a() registers an async handler, which returns a Box<Future<Item=impl Responder, actix_web::Error>>
-                        .resource("/school/today", |r| {
-                            r.method(http::Method::GET).a(school_today)
-                        })
-                        .resource("/{action}/{id}", |r| {
-                            r.method(http::Method::GET).with(adjust_school)
-                        })
-                        .register()
-                }
-            })
-            .handler(
-                "/mifkad-assets",
-                StaticFiles::new("./mifkad-assets/").unwrap(),
-            )
-            .middleware(middleware::Logger::default())
+        App::with_state(
+            AppState::new(&initial_school, &config).expect("could not initialize AppState"),
+        )
+        .configure({
+            |app| {
+                Cors::for_app(app)
+                    .send_wildcard()
+                    .allowed_methods(vec!["GET"])
+                    .max_age(3600)
+                    .resource("/", |r| r.route().a(index))
+                    .resource("/school/today", |r| {
+                        r.method(http::Method::GET).a(school_today)
+                    })
+                    .resource("/{action}/{id}", |r| {
+                        r.method(http::Method::GET).with(adjust_school)
+                    })
+                    .register()
+            }
+        })
+        .handler(
+            "/mifkad-assets",
+            StaticFiles::new("./mifkad-assets/").unwrap(),
+        )
+        .middleware(middleware::Logger::default())
     })
     .bind(addr)
     .chain_err(|| "Could not initialize server")?

@@ -1,22 +1,20 @@
 // data.rs handles reading in the Enrollment: Site report and populating internal data structure
 
 // TODO Xls OR Xlsx
-use super::{schema, DATAFILE};
 use calamine::{open_workbook, Reader, Xls};
 use chrono::prelude::{Date, Datelike, Local};
+use config::Config;
 use errors::{Result, ResultExt};
 use regex::Regex;
-use schema::{Classroom, Expected, Kid, School, Weekday};
+use schema::{self, Classroom, Expected, ExtendedDayConfig, Kid, School, Weekday};
 use serde_json;
 use std::{
     fs::{create_dir, read_dir, remove_file, File, OpenOptions},
-    io::{
-        prelude::{Read, Write},
-        BufReader, BufWriter,
-    },
-    path::{Path, PathBuf},
+    io::{prelude::Write, BufWriter},
+    path::PathBuf,
     str::FromStr,
 };
+use util::*;
 
 lazy_static! {
     // lazy_static facilitates the database file setup based on the current localtime system date at runtime
@@ -54,7 +52,7 @@ lazy_static! {
 
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
-pub fn init_db() -> Result<(School)> {
+pub fn init_db(config: &Config) -> Result<(School)> {
     // Kid(id,name,classroom,date,expected,actual) might be a good idea if I ever go sql
     // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
 
@@ -77,7 +75,7 @@ pub fn init_db() -> Result<(School)> {
     for l in &dir_listing {
         let curr_str = l.to_str().unwrap();
         if curr_str == *DB_FILEPATH_STR {
-            info!(
+            warn!(
                 "Found previously logged attendance for {}, loading...",
                 *DAY_STR
             );
@@ -86,10 +84,13 @@ pub fn init_db() -> Result<(School)> {
         }
     }
 
-    // If we didn't find a corresponding file, serialize it out from DATAFILE
+    // If we didn't find a corresponding file, serialize it out from the input roster
     if !found {
-        info!("No record found for {}.  Reading {}", *DAY_STR, DATAFILE);
-        let school = json!(scrape_enrollment(*WEEKDAY, DATAFILE)?);
+        info!(
+            "No record found for {}.  Reading {:?}",
+            *DAY_STR, config.roster
+        );
+        let school = json!(scrape_enrollment(*WEEKDAY, &config.roster)?);
         let mut new_f = File::create(*DB_FILEPATH_STR)
             .chain_err(|| format!("could not create {}", *DB_FILE_STR))?;
         new_f
@@ -98,28 +99,33 @@ pub fn init_db() -> Result<(School)> {
     }
 
     // Finally, read in today's entry from the database, which we've ensured exists
-    let f = File::open(Path::new(*DB_FILEPATH_STR))
-        .chain_err(|| format!("could not open {}", *DB_FILE_STR))?;
-    let mut bfr = BufReader::new(f);
-    let mut input_str = String::new();
-    let _ = bfr.read_to_string(&mut input_str);
+    let input_str = file_contents_from_str_path(*DB_FILEPATH_STR)?;
 
     // Deserialize the file contents and return
     let ret: schema::School = serde_json::from_str(&input_str)
         .chain_err(|| format!("could not parse contents of {}", *DB_FILE_STR))?;
 
-    info!("Mifkad initialized - using file {}", *DB_FILE_STR);
+    warn!(
+        "Mifkad initialized successfully using mifkad-assets\\db\\{}",
+        *DB_FILE_STR
+    );
+    warn!("{}", config);
+    warn!("Starting webserver...");
     Ok(ret)
 }
 
-pub fn reset_db() -> Result<()> {
+pub fn init_extday() -> Result<ExtendedDayConfig> {
+    unimplemented!()
+}
+
+pub fn reset_db(config: &Config) -> Result<()> {
     // Delete current file and replace it with a brand new copy
     remove_file(*DB_FILEPATH_STR).chain_err(|| format!("Could not clear {}", *DB_FILE_STR))?;
     let mut new_db = File::create(*DB_FILEPATH_STR)
         .chain_err(|| format!("Could not create {}", *DB_FILE_STR))?;
     new_db
         .write_all(
-            serde_json::to_string(&scrape_enrollment(*WEEKDAY, DATAFILE)?)
+            serde_json::to_string(&scrape_enrollment(*WEEKDAY, &config.roster)?)
                 .chain_err(|| "Could not serialize school")?
                 .as_bytes(),
         )
@@ -129,7 +135,7 @@ pub fn reset_db() -> Result<()> {
 
 // scrape enrollment will read in the Enrollment excel sheet and populate the School
 // TODO parameterize the sheet location
-pub fn scrape_enrollment(day: Weekday, file_str: &str) -> Result<School> {
+pub fn scrape_enrollment(day: Weekday, file_str: &PathBuf) -> Result<School> {
     lazy_static! {
         // Define patterns to match
         static ref KID_RE: Regex =
@@ -138,7 +144,9 @@ pub fn scrape_enrollment(day: Weekday, file_str: &str) -> Result<School> {
         static ref CAPACITY_RE: Regex = Regex::new(r"CLASS MAXIMUM: (\d+)").unwrap();
     }
 
-    info!("Loading {:?} from {}", day, DATAFILE);
+    info!("Loading {:?} from {:?}", day, file_str);
+    // here is where you set up the extended day config
+    // look for file, if no file exists, write one with the Default impl
     let mut school = School::new(day);
 
     // Use calamine to read in the input sheet
@@ -180,7 +188,7 @@ pub fn scrape_enrollment(day: Weekday, file_str: &str) -> Result<School> {
                         if !school.classrooms.is_empty() {
                             let last_class = school.classrooms[school.classrooms.len() - 1].clone();
                             let prev_headcount = last_class.kids.len();
-                            info!("Room {} headcount: {}", last_class.letter, prev_headcount);
+                            debug!("Room {} headcount: {}", last_class.letter, prev_headcount);
                         }
 
                         // create a new Classroom and push it to the school
@@ -217,7 +225,7 @@ pub fn scrape_enrollment(day: Weekday, file_str: &str) -> Result<School> {
                         );
                         // If the kid is scheduled, push the kid to the latest open class
                         if new_kid.schedule.expected == Expected::Unscheduled {
-                            info!(
+                            debug!(
                                 "{} not scheduled on {:?} - omitting from roster",
                                 &new_kid.name, day
                             );
@@ -244,7 +252,7 @@ pub fn scrape_enrollment(day: Weekday, file_str: &str) -> Result<School> {
         last_class.letter,
         last_class.kids.len(),
     );
-    info!(
+    warn!(
         "ENROLLMENT LOADED - {:?} - total headcount {}, total classcount {}",
         day, headcount, classcount
     );
@@ -273,7 +281,8 @@ mod tests {
     #[test]
     fn test_open_excel() {
         let school =
-            scrape_enrollment(Weekday::from_str("mon").unwrap(), "sample/test.xls").unwrap();
+            scrape_enrollment(Weekday::from_str("mon").unwrap(), &"sample/test.xls".into())
+                .unwrap();
         assert!(school.classrooms.len() > 0)
     }
 }
