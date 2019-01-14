@@ -4,6 +4,8 @@
 
 /* TODO type expected = Core | Extended | Unscheduled; */
 
+open Belt.Option;
+
 /* External JS functions */
 [@bs.val] external alert: string => unit = "alert";
 [@bs.val] external btoa: string => string = "btoa";
@@ -64,6 +66,9 @@ let add_extended_letter =
   if (letter == "") {
     alert("New class name was empty!");
     extended_config;
+  } else if (letter |> Js.String.match([%re "/^[A-Z]E$/"]) |> isNone) {
+    alert("Must use a single capital letter followed by E, like XE or BE");
+    extended_config
   } else if (contains(
                List.map(
                  el => el.letter,
