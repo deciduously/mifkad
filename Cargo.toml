@@ -2,6 +2,7 @@
 authors = ["deciduously <github@deciduously.com>"]
 name = "mifkad"
 version = "0.3.0"
+edition = "2018"
 [[bin]]
 name = "mifkad"
 path = "src/backend/main.rs"
