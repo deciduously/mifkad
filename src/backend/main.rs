@@ -36,11 +36,11 @@ use actix_web::{
     server::HttpServer,
     App,
 };
-use config::{init_config, Config};
-use data::init_db;
-use errors::{Result, ResultExt};
-use handlers::{adjust_school, index, new_extended_config, school_today};
-use schema::School;
+use crate::config::{init_config, Config};
+use crate::data::init_db;
+use crate::errors::{Result, ResultExt};
+use crate::handlers::{adjust_school, index, new_extended_config, school_today};
+use crate::schema::School;
 use std::{
     env::{set_var, var},
     sync::{Arc, RwLock},
@@ -69,7 +69,7 @@ fn init_logging(level: config::Verbosity) -> Result<()> {
     let verbosity = if var("RUST_BACKTRACE").unwrap_or_else(|_| "0".into()) == "1" {
         "mifkad=trace"
     } else {
-        use config::Verbosity::*;
+        use crate::config::Verbosity::*;
         match level {
             Warn => "warn",
             Info => "info",

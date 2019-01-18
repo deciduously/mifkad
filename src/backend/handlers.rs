@@ -3,9 +3,9 @@ use crate::AppState;
 use actix_web::{
     self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path, State,
 };
-use data::{init_db, reset_db, reset_extday, write_db};
+use crate::data::{init_db, reset_db, reset_extday, write_db};
 use futures::{future::result, Future};
-use schema::{ExtendedDayConfig, School};
+use crate::schema::{ExtendedDayConfig, School};
 use std::{
     clone::Clone,
     io::{prelude::Read, BufReader},

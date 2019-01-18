@@ -3,10 +3,10 @@
 // TODO Xls OR Xlsx
 use calamine::{open_workbook, Reader, Xls};
 use chrono::prelude::{Date, Datelike, Local};
-use config::Config;
-use errors::{Result, ResultExt};
+use crate::config::Config;
+use crate::errors::{Result, ResultExt};
 use regex::Regex;
-use schema::{self, Classroom, Expected, ExtendedDayConfig, Kid, School, Weekday};
+use crate::schema::{self, Classroom, Expected, ExtendedDayConfig, Kid, School, Weekday};
 use serde_json;
 use std::{
     fs::{create_dir, remove_file, File, OpenOptions},
@@ -14,7 +14,7 @@ use std::{
     path::PathBuf,
     str::FromStr,
 };
-use util::*;
+use crate::util::*;
 
 lazy_static! {
     // this lazy_static block facilitates the database file setup based on the current localtime system date at runtime

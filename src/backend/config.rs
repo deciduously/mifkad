@@ -1,7 +1,7 @@
-use errors::*;
+use crate::errors::*;
 use std::{fmt, path::PathBuf};
 use toml;
-use util::*;
+use crate::util::*;
 
 static DEFAULT_CONFIG: &str = "Mifkad.toml";
 
