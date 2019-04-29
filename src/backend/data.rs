@@ -1,12 +1,13 @@
 // data.rs handles reading in the Enrollment: Site report and populating internal data structure
 
 // TODO Xls OR Xlsx
-use calamine::{open_workbook, Reader, Xls};
-use chrono::prelude::{Date, Datelike, Local};
 use crate::config::Config;
 use crate::errors::{Result, ResultExt};
-use regex::Regex;
 use crate::schema::{self, Classroom, Expected, ExtendedDayConfig, Kid, School, Weekday};
+use crate::util::*;
+use calamine::{open_workbook, Reader, Xls};
+use chrono::prelude::{Date, Datelike, Local};
+use regex::Regex;
 use serde_json;
 use std::{
     fs::{create_dir, remove_file, File, OpenOptions},
@@ -14,7 +15,6 @@ use std::{
     path::PathBuf,
     str::FromStr,
 };
-use crate::util::*;
 
 lazy_static! {
     // this lazy_static block facilitates the database file setup based on the current localtime system date at runtime
@@ -188,7 +188,7 @@ pub fn scrape_enrollment(
                         debug!("MATCH CLASS: {}", &s);
                         let caps = CLASS_RE.captures(&s).unwrap();
                         // the capacity is found in Column B
-                        let mut capacity: u8;
+                        let capacity: u8;
                         match &row[1] {
                             String(s2) => {
                                 let capacity_caps = CAPACITY_RE.captures(&s2).unwrap();
@@ -235,7 +235,7 @@ pub fn scrape_enrollment(
                             schema::Weekday::Friday => 10,
                         };
                         let sched = &row[sched_idx];
-                        let mut new_kid = Kid::new(headcount, name, &format!("{}", sched));
+                        let new_kid = Kid::new(headcount, name, &format!("{}", sched));
                         debug!(
                             "FOUND KID: {} - {} ({:?})",
                             new_kid.name, sched, new_kid.schedule.expected
