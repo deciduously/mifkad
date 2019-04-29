@@ -62,19 +62,20 @@ impl FromStr for Expected {
             return Ok(Unscheduled);
         };
 
-        let times: Vec<&str> = s.split(" - ").collect();
+        let times: Vec<&str> = s.split("-").collect();
 
         // I don't care about the beginning time, just the end
         // if it's a time like 2:30, take the hour and add one
-        let end_str = times[1];
+        let end_str = times[1].split_whitespace().next().unwrap();
         let end = if PARTIAL_HOUR_RE.is_match(end_str) {
             let part_caps = PARTIAL_HOUR_RE.captures(end_str).unwrap();
             part_caps[1].parse::<u8>()? + 1
         } else {
-            times[1].parse::<u8>()?
+            end_str.parse::<u8>()?
         };
 
-        if end > 4 {
+        // 11p, 12p is a special case
+        if end > 4 && end != 12 && end != 11 {
             Ok(Extended)
         } else {
             Ok(Core)
@@ -253,6 +254,14 @@ mod tests {
     #[test]
     fn test_expected_extended_late_start() {
         assert_eq!(Expected::from_str("10 - 6").unwrap(), Expected::Extended)
+    }
+    #[test]
+    fn test_expected_core_noon_end() {
+        assert_eq!(Expected::from_str("8 - 12").unwrap(), Expected::Core)
+    }
+    #[test]
+    fn test_expected_no_space() {
+        assert_eq!(Expected::from_str("8 -12").unwrap(), Expected::Core)
     }
     #[test]
     fn test_expected_unscheduled() {
