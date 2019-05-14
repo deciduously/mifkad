@@ -1,33 +1,31 @@
-extern crate actix;
-extern crate actix_web;
-extern crate calamine;
-extern crate chrono;
 #[macro_use]
 extern crate error_chain;
-extern crate futures;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
 extern crate pretty_assertions;
-extern crate pretty_env_logger;
-extern crate regex;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
-extern crate toml;
 
 mod config;
 mod data;
+mod db;
 mod errors {
     error_chain! {}
 }
 mod handlers;
 mod schema;
 mod util;
+
+use crate::config::{init_config, Config};
+use crate::data::init_db;
+use crate::errors::{Result, ResultExt};
+use crate::handlers::{adjust_school, index, new_extended_config, school_today};
+use crate::schema::School;
 
 use actix_web::{
     fs::StaticFiles,
@@ -36,11 +34,7 @@ use actix_web::{
     server::HttpServer,
     App,
 };
-use crate::config::{init_config, Config};
-use crate::data::init_db;
-use crate::errors::{Result, ResultExt};
-use crate::handlers::{adjust_school, index, new_extended_config, school_today};
-use crate::schema::School;
+
 use std::{
     env::{set_var, var},
     sync::{Arc, RwLock},
