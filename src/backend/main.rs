@@ -28,10 +28,10 @@ use crate::handlers::{adjust_school, index, new_extended_config, school_today};
 use crate::schema::School;
 
 use actix_web::{
-    fs::StaticFiles,
     http,
     middleware::{self, cors::Cors},
-    server::HttpServer,
+    HttpServer,
+    web,
     App,
 };
 
@@ -83,48 +83,55 @@ fn init_logging(level: config::Verbosity) -> Result<()> {
     Ok(())
 }
 
+//fn run() -> Result<()> {
+//    let config = init_config(None).unwrap_or_default();
+//    info!("{}", config);
+//    init_logging(config.verbosity)?;
+//
+//    let initial_school = Arc::new(RwLock::new(init_db(&config)?));
+//
+//    // actix setup
+//    let sys = actix::System::new("mifkad");
+//    let addr = format!("127.0.0.1:{}", config.port);
+//
+//    HttpServer::new(move || {
+//        App::with_state(AppState::new(&initial_school, &config))
+//            .configure({
+//                |app| {
+//                    Cors::for_app(app)
+//                        .send_wildcard()
+//                        .allowed_methods(vec!["GET", "POST"])
+//                        .max_age(3600)
+//                        .resource("/", |r| r.route().a(index))
+//                        .resource("/school/today", |r| {
+//                            r.method(http::Method::GET).a(school_today)
+//                        })
+//                        .resource("/{action}/{id}", |r| {
+//                            r.method(http::Method::GET).with(adjust_school)
+//                        })
+//                        .resource("/extconf", |r| {
+//                            r.method(http::Method::POST).with(new_extended_config)
+//                        })
+//                        .register()
+//                }
+//            })
+//            .handler(
+//                "/mifkad-assets",
+//                StaticFiles::new("./mifkad-assets/").unwrap(),
+//            )
+//            .middleware(middleware::Logger::default())
+//    })
+//    .bind(addr)
+//    .chain_err(|| "Could not initialize server")?
+//    .start();
+//    let _ = sys.run();
+//    Ok(())
+//}
+
 fn run() -> Result<()> {
     let config = init_config(None).unwrap_or_default();
     info!("{}", config);
     init_logging(config.verbosity)?;
-
-    let initial_school = Arc::new(RwLock::new(init_db(&config)?));
-
-    // actix setup
-    let sys = actix::System::new("mifkad");
-    let addr = format!("127.0.0.1:{}", config.port);
-
-    HttpServer::new(move || {
-        App::with_state(AppState::new(&initial_school, &config))
-            .configure({
-                |app| {
-                    Cors::for_app(app)
-                        .send_wildcard()
-                        .allowed_methods(vec!["GET", "POST"])
-                        .max_age(3600)
-                        .resource("/", |r| r.route().a(index))
-                        .resource("/school/today", |r| {
-                            r.method(http::Method::GET).a(school_today)
-                        })
-                        .resource("/{action}/{id}", |r| {
-                            r.method(http::Method::GET).with(adjust_school)
-                        })
-                        .resource("/extconf", |r| {
-                            r.method(http::Method::POST).with(new_extended_config)
-                        })
-                        .register()
-                }
-            })
-            .handler(
-                "/mifkad-assets",
-                StaticFiles::new("./mifkad-assets/").unwrap(),
-            )
-            .middleware(middleware::Logger::default())
-    })
-    .bind(addr)
-    .chain_err(|| "Could not initialize server")?
-    .start();
-    let _ = sys.run();
     Ok(())
 }
 
