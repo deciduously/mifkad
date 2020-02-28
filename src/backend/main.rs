@@ -29,6 +29,11 @@ mod handlers;
 mod schema;
 mod util;
 
+use crate::config::{init_config, Config};
+use crate::data::init_db;
+use crate::errors::{Result, ResultExt};
+use crate::handlers::{adjust_school, index, new_extended_config, school_today};
+use crate::schema::School;
 use actix_web::{
     fs::StaticFiles,
     http,
@@ -36,11 +41,6 @@ use actix_web::{
     server::HttpServer,
     App,
 };
-use crate::config::{init_config, Config};
-use crate::data::init_db;
-use crate::errors::{Result, ResultExt};
-use crate::handlers::{adjust_school, index, new_extended_config, school_today};
-use crate::schema::School;
 use std::{
     env::{set_var, var},
     sync::{Arc, RwLock},

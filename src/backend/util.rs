@@ -2,11 +2,10 @@ use crate::errors::*;
 use std::{
     fs::File,
     io::{BufReader, Read},
+    path::Path,
 };
 
 pub fn file_contents_from_str_path(s: &str) -> Result<String> {
-    use std::{fs::File, path::Path};
-
     let f = File::open(Path::new(&s)).chain_err(|| format!("Could not open {}", s))?;
     string_of_file(&f)
 }

@@ -52,7 +52,7 @@ lazy_static! {
 
 // Determine what day it is, and either write a new db file or read the one there
 // It returns the school to load in to the AppState
-pub fn init_db(config: &Config) -> Result<(School)> {
+pub fn init_db(config: &Config) -> Result<School> {
     // Kid(id,name,classroom,date,expected,actual) might be a good idea if I ever go sql
     // To update, we'll select for Name AND Day, or pass the ID of the record down to the frontend
 

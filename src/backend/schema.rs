@@ -62,7 +62,7 @@ impl FromStr for Expected {
             return Ok(Unscheduled);
         };
 
-        let times: Vec<&str> = s.split("-").collect();
+        let times: Vec<&str> = s.split('-').collect();
 
         // I don't care about the beginning time, just the end
         // if it's a time like 2:30, take the hour and add one
@@ -188,7 +188,7 @@ impl ExtendedDayEntry {
         Self {
             letter: letter.into(),
             capacity: capacity.into(),
-            members: members.iter().map(|s| s.to_string()).collect(),
+            members: members.iter().map(|s| (*s).to_string()).collect(),
         }
     }
 }

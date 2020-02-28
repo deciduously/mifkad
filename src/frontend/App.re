@@ -359,7 +359,7 @@ let make = _children => {
         />
         <footer>
           <hr />
-          {ReasonReact.string("mifkad v0.3.1 \xA9 2019 Ben Lovy - ")}
+          {ReasonReact.string("mifkad v0.3.2 \xA9 2019-2020 Ben Lovy - ")}
           <a href="https://github.com/deciduously/mifkad">
             {ReasonReact.string("source")}
           </a>

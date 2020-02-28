@@ -1,11 +1,11 @@
 // handlers.rs defines the actix_web handlers
+use crate::data::{init_db, reset_db, reset_extday, write_db};
+use crate::schema::{ExtendedDayConfig, School};
 use crate::AppState;
 use actix_web::{
     self, fs::NamedFile, AsyncResponder, HttpRequest, HttpResponse, Json, Path, State,
 };
-use crate::data::{init_db, reset_db, reset_extday, write_db};
 use futures::{future::result, Future};
-use crate::schema::{ExtendedDayConfig, School};
 use std::{
     clone::Clone,
     io::{prelude::Read, BufReader},
@@ -41,7 +41,7 @@ impl FromStr for Action {
 
 pub fn index(
     _req: &HttpRequest<AppState>,
-) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
+) -> Box<dyn Future<Item = HttpResponse, Error = actix_web::Error>> {
     let path: PathBuf = PathBuf::from("./mifkad-assets/index.html");
 
     let f = NamedFile::open(&path)
@@ -57,7 +57,7 @@ pub fn index(
 // Replace the extended config with the incoming POST data
 pub fn new_extended_config(
     (newconf, state): (Json<ExtendedDayConfig>, State<AppState>),
-) -> Box<Future<Item = HttpResponse, Error = actix_web::Error>> {
+) -> Box<dyn Future<Item = HttpResponse, Error = actix_web::Error>> {
     warn!("Resetting extended day config!");
     reset_extday(&newconf.clone(), &state.config).unwrap();
     let mut a = state.school.write().unwrap();
@@ -71,7 +71,7 @@ pub fn new_extended_config(
 // The RwLock read handler
 pub fn school_today(
     req: &HttpRequest<AppState>,
-) -> Box<Future<Item = Json<School>, Error = actix_web::Error>> {
+) -> Box<dyn Future<Item = Json<School>, Error = actix_web::Error>> {
     // Grab a non-blocking read lock and return the result as Json
     let a = req.state().school.read().unwrap();
     let ret = Json((*a).clone());
@@ -82,7 +82,7 @@ pub fn school_today(
 // the RwLock write handler
 pub fn adjust_school(
     (path, state): (Path<(String, u32)>, State<AppState>),
-) -> Box<Future<Item = Json<School>, Error = actix_web::Error>> {
+) -> Box<dyn Future<Item = Json<School>, Error = actix_web::Error>> {
     use self::Action::*;
     let action = Action::from_str(&path.0).unwrap();
     let id = path.1;
